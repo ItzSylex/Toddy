@@ -120,7 +120,7 @@ class Moderacion(commands.Cog):
             await self.add_mute(ctx, member, mute_role)
 
     @commands.command(
-        brief = "Quita el silencio de un usuario",
+        brief = "Quita el silencio de un usuario\n Para quitar el mute de alguien que no este en el servidor, usa su ID",
         name = "unmute", usage = f"{config.prefix}unmute {constants.name}",
         aliases = ["um"]
     )

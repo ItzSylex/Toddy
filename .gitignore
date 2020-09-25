@@ -3,5 +3,3 @@ __pycache__
 constants.py
 
 config.py
-
-database.db

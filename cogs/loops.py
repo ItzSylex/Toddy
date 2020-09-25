@@ -32,8 +32,6 @@ class Loops(commands.Cog):
 
                 self.current_mutes = muted_channels
 
-                pp.pprint(self.current_mutes)
-
     @tasks.loop(seconds = 1)
     async def should_unumte(self):
         await self.bot.wait_until_ready()

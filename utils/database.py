@@ -14,7 +14,6 @@ class Database(commands.Cog):
         """Makes database connection to users data base"""
         self.bot.db = await aiosqlite.connect('database.db')
 
-
     async def exists_db(self, member: discord.Member, guild: discord.Guild) -> bool:
         """Checks if the user is in the database"""
         if hasattr(member, 'id') and hasattr(guild, "id"):
@@ -58,7 +57,6 @@ class Database(commands.Cog):
             if results[0] == 3:
                 return True
         return False
-
 
 
 def setup(bot) -> None:

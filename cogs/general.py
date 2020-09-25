@@ -28,6 +28,8 @@ class Informacion(commands.Cog):
             )
 
             for name, cog in self.bot.cogs.items():
+                if name == "Owner":
+                    continue
                 cmds_in_cog = ', '.join([command.name for command in cog.get_commands()])
                 if len(cmds_in_cog) == 0:
                     pass
