@@ -5,7 +5,7 @@ import aiosqlite
 from utils.database import Database
 
 
-## TODO: TEST on_member_join
+# TODO: TEST on_member_join
 
 class Events(commands.Cog):
 
@@ -44,20 +44,21 @@ class Events(commands.Cog):
 
         if not await self.dab.exists_db(member, member.guild):
             await self.bot.db.execute(
-                    """INSERT INTO users (
-                        guild_id, user_id, mute, warns, guild_name
-                    ) VALUES (?, ?, ?, ?, ?)""", (guild.id, member.id, 0, 0, guild.name)
-                )
+                """INSERT INTO users (
+                    guild_id, user_id, mute, warns, guild_name
+                ) VALUES (?, ?, ?, ?, ?)""", (member.guild.id, member.id, 0, 0, member.guild.name)
+            )
+            await self.bot.db.commit()
 
         else:
             if await self.dab.is_mute(member, member.guild):
-                mute_role = discord.utils.get(member.guild.roles, name =  "Silenciado ❌")
+                mute_role = discord.utils.get(member.guild.roles, name = "Silenciado ❌")
 
                 if not mute_role:
-                    await  member.guild.create_role(name = 'Silenciado ❌', color = discord.Colour(0x666666))
+                    await member.guild.create_role(name = 'Silenciado ❌', color = discord.Colour(0x666666))
 
                     for channel in ctx.guild.channels:
-                        overwrites =  channel.overwrites
+                        overwrites = channel.overwrites
                         if isinstance(channel, discord.TextChannel):
                             overwrites[mute_role] = discord.PermissionOverwrite(send_messages = False, add_reactions = False)
 
@@ -69,8 +70,6 @@ class Events(commands.Cog):
                     await member.add_roles(mute_role, reason = "Rol dado al unirse por infraccion previa")
                 else:
                     await member.add_roles(mute_role, reason = "Rol dado al unirse por infraccion previa")
-
-
 
 
 def setup(bot):

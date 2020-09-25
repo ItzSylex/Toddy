@@ -15,8 +15,11 @@ class Informacion(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(brief = "Muestra todos los comandos disponibles", name = "help", usage = f";;help")
-    async def help_(self, ctx, *, query: str=None):
+    @commands.command(
+        brief = "Muestra todos los comandos disponibles",
+        name = "help", usage = f";;help"
+    )
+    async def help_(self, ctx, *, query: str = None):
         if not query:
             embed = discord.Embed(
                 title = f'{constants.info} Lista de comandos.',
@@ -56,14 +59,13 @@ class Informacion(commands.Cog):
 
         await ctx.send(embed=embed)
 
-
     @commands.command(
         brief = "Muestra algunos detalles del bot",
         usage = ";;stats"
     )
     async def stats(self, ctx):
         embed = discord.Embed(
-            title = f"{constants.info} Stats de Fritz:",
+            title = f"{constants.info} Stats de Toddy:",
             color = 0x02afe6
         )
         embed.add_field(name = "Creador", value = f"```ini\n[.sylex#2803]```")

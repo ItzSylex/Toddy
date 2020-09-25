@@ -9,6 +9,7 @@ import pprint
 
 pp = pprint.PrettyPrinter(indent=4)
 
+
 class Loops(commands.Cog):
 
     def __init__(self, bot):
@@ -16,7 +17,6 @@ class Loops(commands.Cog):
         self.should_unumte.start()
         self.bot.loop.create_task(self.cache_mutes())
         self.current_mutes = {}
-
 
     async def cache_mutes(self):
         await self.bot.wait_until_ready()
@@ -49,14 +49,15 @@ class Loops(commands.Cog):
 
     async def unmute_channel(self, channel_id: int, guild_id: int):
         """
-        Removes channel from cache, changes permissions to speak and updates database
+        Removes channel from cache,
+        changes permissions to speak and updates database
         """
 
         del self.current_mutes[channel_id]
 
         query = """DELETE FROM c_mutes WHERE channel_id = ?"""
 
-        data_tuple =(channel_id,)
+        data_tuple = (channel_id,)
 
         await self.bot.db.execute(query, data_tuple)
         await self.bot.db.commit()
@@ -70,7 +71,9 @@ class Loops(commands.Cog):
 
         await channel.edit(overwrites = overwrites)
 
-        await channel.send(f"{constants.check} Este canal ya no esta silenciado")
+        await channel.send(
+            f"{constants.check} Este canal ya no esta silenciado"
+        )
 
 
 def setup(bot):

@@ -11,14 +11,13 @@ import asyncio
 import datetime
 
 
-## TODO: Add optional reason to Ban and Kick command
+# TODO: Add optional reason to Ban and Kick command
 
 class Moderacion(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
         self.dab = Database(bot)
-
 
     def same_level(self, author, target) -> bool:
         """
@@ -27,16 +26,16 @@ class Moderacion(commands.Cog):
         to recieve the infraction
         """
         if isinstance(target, discord.Object):
-            return True
+            return False
         else:
             if all(getattr(obj, "top_role") for obj in [author, target]):
                 if (
-                author.top_role == target.top_role or
-                target.guild_permissions.administrator or
-                target.guild_permissions.manage_roles or
-                target.guild_permissions.ban_members or
-                target.guild_permissions.kick_members
-            ):
+                    author.top_role == target.top_role or
+                    target.guild_permissions.administrator or
+                    target.guild_permissions.manage_roles or
+                    target.guild_permissions.ban_members or
+                    target.guild_permissions.kick_members
+                ):
                     return True
                 return False
 
@@ -47,15 +46,15 @@ class Moderacion(commands.Cog):
         """
 
         embed = discord.Embed(
-            title = f'{constants.check} {member} fue silenciado',
+            title = f'{constants.check} {member.display_name} fue silenciado',
             color = constants.green
         )
-        embed.add_field(name = "Mod / Admin:", value = str(ctx.author))
+        embed.add_field(name = "Mod / Admin:", value = ctx.author.display_name)
         embed.add_field(name = "ID del usuario:", value = member.id)
 
         if await self.dab.is_mute(member, ctx.guild):
             embed = discord.Embed(
-                title = f'{constants.check} {member} ya estaba silenciado antes.',
+                title = f'{constants.check} {member.display_name} ya estaba silenciado antes.',
                 color = constants.green
             )
             return await ctx.send(embed = embed)
@@ -84,7 +83,7 @@ class Moderacion(commands.Cog):
         it creates it and set the corresponding overwrites
         """
 
-        mute_role = discord.utils.get(ctx.guild.roles, name =  "Silenciado ❌")
+        mute_role = discord.utils.get(ctx.guild.roles, name = "Silenciado ❌")
 
         if member is None:
             embed = discord.Embed(
@@ -104,7 +103,7 @@ class Moderacion(commands.Cog):
             mute_role = await ctx.guild.create_role(name = 'Silenciado ❌', color = discord.Colour(0x666666))
 
             for channel in ctx.guild.channels:
-                overwrites =  channel.overwrites
+                overwrites = channel.overwrites
                 if isinstance(channel, discord.TextChannel):
                     overwrites[mute_role] = discord.PermissionOverwrite(send_messages = False, add_reactions = False)
 
@@ -113,15 +112,12 @@ class Moderacion(commands.Cog):
 
                 await channel.edit(overwrites = overwrites)
 
-
             await ctx.send(f"{constants.check} El rol Silenciado ha sido creado y los canales han sido editados", delete_after = 5.0)
 
             await self.add_mute(ctx, member, mute_role)
 
         else:
             await self.add_mute(ctx, member, mute_role)
-
-
 
     @commands.command(
         brief = "Quita el silencio de un usuario",
@@ -132,7 +128,7 @@ class Moderacion(commands.Cog):
         commands.has_guild_permissions(administrator = True),
         commands.has_guild_permissions(manage_roles = True)
     )
-    async def unmute(self, ctx, member: discord.Member = None):
+    async def unmute(self, ctx, member: typing.Union[discord.Member, discord.Object] = None):
 
         """
         Unmutes the user by removing the role
@@ -140,25 +136,29 @@ class Moderacion(commands.Cog):
 
         embed = discord.Embed()
         role = discord.utils.get(ctx.guild.roles, name = "Silenciado ❌")
+        embed.title = f'{constants.check} {member.display_name} ya no esta silenciado.'
+        embed.color = constants.green
+        embed.add_field(name = "Mod / Admin:", value = ctx.author.display_name)
+        embed.add_field(name = "ID del usuario:", value = member.id)
 
         if member is not None:
             if await self.dab.is_mute(member, ctx.guild):
-                embed.title = f'{constants.check} {member} ya no esta silenciado.'
-                embed.color = constants.green
-                embed.add_field(name = "Mod / Admin:", value = str(ctx.author))
-                embed.add_field(name = "ID del usuario:", value = member.id)
-
-                try:
+                if isinstance(member, discord.Object):
+                    embed.title = f'{constants.check} {member.id} ya no esta silenciado.'
+                    await self.bot.db.execute(
+                        """UPDATE users SET mute = 0 WHERE guild_id = ? AND user_id = ?""", (ctx.guild.id, member.id)
+                    )
+                    await self.bot.db.commit()
+                else:
                     await member.remove_roles(role)
-                except Exception as e:
-                    await ctx.send(f"{constants.rwarn} No he podido quitar el rol a este usuario", delete_after = 3.0)
-                await self.bot.db.execute(
-                    """UPDATE users SET mute = 0 WHERE guild_id = ? AND user_id = ?""", (ctx.guild.id, member.id)
-                )
-                await self.bot.db.commit()
+                    await self.bot.db.execute(
+                        """UPDATE users SET mute = 0 WHERE guild_id = ? AND user_id = ?""", (ctx.guild.id, member.id)
+                    )
+                    await self.bot.db.commit()
+
                 return await ctx.send(embed = embed)
             else:
-                embed.title = f'{constants.rwarn} {member} no esta silenciado.'
+                embed.title = f'{constants.rwarn} {member.display_name} no esta silenciado.'
                 embed.color = constants.red
                 return await ctx.send(embed = embed)
 
@@ -167,17 +167,19 @@ class Moderacion(commands.Cog):
             embed.color = constants.red
             return await ctx.send(embed = embed, delete_after = 5.0)
 
-
     @commands.command(
         brief = "Banea a un usuario", name = "ban",
         usage = f"{config.prefix}ban {constants.name}",
         aliases = ["b"]
-        )
+    )
     @commands.check_any(
         commands.has_permissions(administrator = True),
         commands.has_permissions(ban_members = True)
     )
     async def ban(self, ctx, member: typing.Union[discord.Member, discord.Object]):
+        embed = discord.Embed()
+        embed.add_field(name = "Mod / Admin:", value = ctx.author.display_name)
+        embed.add_field(name = "ID del usuario:", value = member.id)
         if self.same_level(ctx.author, member):
             embed = discord.Embed(
                 title = f'{constants.x}  No puedo banear a este usario.',
@@ -188,15 +190,15 @@ class Moderacion(commands.Cog):
             try:
                 await ctx.guild.ban(member, delete_message_days = 0)
             except Exception as e:
-                raise  e
+                raise e
                 await ctx.guild.ban(discord.Object(id = member.id), delete_message_days = 0)
             finally:
-                embed = discord.Embed(
-                    title = f'{constants.check} {member} ha sido baneado',
-                    color = constants.green
-                )
-                embed.add_field(name = "Mod / Admin:", value = str(ctx.author))
-                embed.add_field(name = "ID del usuario:", value = member.id)
+                if isinstance(member, discord.Object):
+                    embed.title = f'{constants.check} {member.id} ha sido baneado'
+                    embed.color = constants.green
+                else:
+                    embed.title = f'{constants.check} {member.display_name} ha sido baneado'
+                    embed.color = constants.green
                 return await ctx.send(embed = embed)
 
     @commands.command(
@@ -218,10 +220,10 @@ class Moderacion(commands.Cog):
         else:
             await ctx.guild.kick(member)
             embed = discord.Embed(
-                title = f'{constants.check} {member} ha sido expulsado',
+                title = f'{constants.check} {member.display_name} ha sido expulsado',
                 color = constants.green
             )
-            embed.add_field(name = "Mod / Admin:", value = str(ctx.author))
+            embed.add_field(name = "Mod / Admin:", value = ctx.author.display_name)
             embed.add_field(name = "ID del usuario:", value = member.id)
             return await ctx.send(embed = embed)
 
@@ -267,8 +269,6 @@ class Moderacion(commands.Cog):
             await ctx.channel.edit(overwrites = overwrites)
             await ctx.channel.send(f"{constants.check} Silenciando canal por {duration} minutos")
 
-
-
     @commands.command(
         brief = "Agrega una advertencia a el usario.",
         usage = f"{config.prefix}warn {constants.name} [razon opcional]",
@@ -295,19 +295,17 @@ class Moderacion(commands.Cog):
         await self.bot.db.execute(query, data_tuple)
         await self.bot.db.commit()
 
-
         if await self.dab.is_max(member, member.guild):
             await ctx.guild.ban(discord.Object(id = member.id), delete_message_days = 0)
             await ctx.send(f'{constants.check} {member} ha sido baneado tras recibir 3 warns')
 
         else:
-            embed.title = f'{constants.check} {member} ha recibido un warn'
+            embed.title = f'{constants.check} {member.display_name} ha recibido un warn'
             embed.color = constants.green
             embed.description = f"Razon del warn:\n```ini\n[{reason}]```"
-            embed.add_field(name = "Mod / Admin:", value = str(ctx.author))
+            embed.add_field(name = "Mod / Admin:", value = ctx.author.display_name)
             embed.add_field(name = "ID del usuario:", value = member.id)
             await ctx.send(embed = embed)
-
 
     @commands.command(
         brief = "Elimina una advertencia del usario.",
@@ -338,20 +336,11 @@ class Moderacion(commands.Cog):
         await self.bot.db.execute(query, data_tuple)
         await self.bot.db.commit()
 
-        embed.title = f'{constants.check}  Warn de {member} removido'
+        embed.title = f'{constants.check}  Warn de {member.display_name} removido'
         embed.color = constants.green
-        embed.add_field(name = "Mod / Admin:", value = str(ctx.author))
+        embed.add_field(name = "Mod / Admin:", value = ctx.author.display_name)
         embed.add_field(name = "ID del usuario:", value = member.id)
         await ctx.send(embed = embed)
-
-
-
-
-
-
-
-
-
 
 
 def setup(bot):

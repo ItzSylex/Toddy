@@ -52,7 +52,7 @@ class Owner(commands.Cog):
                 await ctx.message.add_reaction(f"{constants.x}")
 
     @commands.command()
-    async def load_members(self, ctx, guild_id: int =  None):
+    async def load_members(self, ctx, guild_id: int = None):
         if guild_id is None:
             for guild in self.bot.guilds:
                 for member in guild.members:
