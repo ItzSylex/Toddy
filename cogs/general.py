@@ -30,7 +30,7 @@ class Informacion(commands.Cog):
             for name, cog in self.bot.cogs.items():
                 if name == "Owner":
                     continue
-                cmds_in_cog = ', '.join([command.name for command in cog.get_commands()])
+                cmds_in_cog = ', '.join(["shh" if command.name == "hush" else command.name for command in cog.get_commands()])
                 if len(cmds_in_cog) == 0:
                     pass
                 else:
@@ -40,11 +40,11 @@ class Informacion(commands.Cog):
         if query in self.bot.cogs.keys():
             cog = self.bot.get_cog(query)
 
-            cmds_in_cog = [command.name for command in cog.get_commands()]
+            cmds_in_cog = ["shh" if command.name == "hush" else command.name for command in cog.get_commands()]
 
             embed = discord.Embed(
                 title = f"{constants.info} {cog.qualified_name}",
-                description = f"```ini\n[{cog.description}]```" or f"```ini\n[No hay descripcion sobre esta categoria]```",
+                description = f"```ini\n[{cog.description}]```",
                 color = 0x02afe6
             )
             embed.add_field(name='Comandos disponibles:', value = f"```ini\n[{', '.join(cmds_in_cog)}]```")

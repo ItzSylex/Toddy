@@ -3,8 +3,6 @@ from discord.ext import commands
 import constants
 import config
 
-# TODO: REGEX TO MAKE SURE ONLY ANY AMOUNT OF X
-
 
 class ErrorHandler(commands.Cog):
 
@@ -14,7 +12,6 @@ class ErrorHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        """Triggers whenever there is an error"""
 
         if hasattr(ctx.command, 'on_error'):
             return
@@ -32,13 +29,12 @@ class ErrorHandler(commands.Cog):
                 for char in invoked[1:]:
                     if char.lower() != "h":
                         return
-                shh_command = self.bot.get_command("shh")
+                shh_command = self.bot.get_command("hush")
                 self.bot.eh_invoked = True
 
-                duration = invoked.count("h") * 1
+                duration = invoked.count("h") * 2
 
                 await ctx.invoke(shh_command, duration if duration <= 15 else 15)
-
         else:
             raise error
 

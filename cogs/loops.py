@@ -14,16 +14,21 @@ class Loops(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.should_unumte.start()
-        self.bot.loop.create_task(self.cache_mutes())
-        self.current_mutes = {}
 
-    async def cache_mutes(self):
+        self.bot.loop.create_task(self.cache_values())
+
+        self.temp_infractions.start()
+        self.should_unumte.start()
+
+        self.current_mutes = {}
+        self.current_infractions = {}
+
+    async def cache_values(self):
         await self.bot.wait_until_ready()
-        cursor = await self.bot.db.execute(
+        cursor_m = await self.bot.db.execute(
             """SELECT * FROM c_mutes"""
         )
-        mutes = await cursor.fetchall()
+        mutes = await cursor_m.fetchall()
 
         if mutes:
             muted_channels = {}
@@ -31,6 +36,19 @@ class Loops(commands.Cog):
                 muted_channels[mute[0]] = [mute[1], mute[2]]
 
                 self.current_mutes = muted_channels
+
+        cursor_in = await self.bot.db.execute(
+            """SELECT * FROM infractions"""
+        )
+
+        infractions = await cursor_in.fetchall()
+
+        if infractions:
+            current_infractions = {}
+            for infraction in infractions:
+                current_infractions[infraction[0]] = [infraction[1], infraction[2], infraction[3]]
+
+                self.current_infractions = current_infractions
 
     @tasks.loop(seconds = 1)
     async def should_unumte(self):
@@ -44,6 +62,18 @@ class Loops(commands.Cog):
 
                 if d.now() >= time_to_unmute:
                     await self.unmute_channel(channel_id, guild_id)
+
+        if hasattr(self, "current_infractions"):
+            for user_id, details_inf in list(self.current_infractions.items()):
+                guild_id = details_inf[0]
+                remove_time = d.strptime(details_inf[1], '%Y-%m-%d %H:%M:%S.%f')
+
+                if d.now() >= remove_time:
+                    await self.remove_infraction(user_id, guild_id, details_inf[2])
+
+    @tasks.loop(seconds = 1)
+    async def temp_infractions(self):
+        await self.bot.wait_until_ready()
 
     async def unmute_channel(self, channel_id: int, guild_id: int):
         """
@@ -72,6 +102,25 @@ class Loops(commands.Cog):
         await channel.send(
             f"{constants.check} Este canal ya no esta silenciado"
         )
+
+    async def remove_infraction(self, user_id: int, guild_id: int, inf_type: str):
+        guild = self.bot.get_guild(guild_id)
+        user = guild.get_member(user_id)
+
+        del self.current_infractions[user_id]
+
+        query = """DELETE FROM infractions WHERE user_id = ? AND guild_id = ?"""
+        data_tuple = (user_id, guild_id)
+
+        await self.bot.db.execute(query, data_tuple)
+        await self.bot.db.commit()
+
+        if inf_type == "ban":
+            await guild.unban(discord.Object(id = user_id))
+
+        if inf_type == "mute":
+            role = discord.utils.get(guild.roles, name = "Silenciado ❌")
+            await user.remove_roles(role)
 
 
 def setup(bot):

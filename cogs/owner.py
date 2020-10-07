@@ -7,6 +7,8 @@ import asyncio
 import os
 import constants
 
+import inspect
+
 
 class Owner(commands.Cog):
     """Commands only for the bot owner"""
@@ -63,6 +65,7 @@ class Owner(commands.Cog):
                             ) VALUES (?, ?, ?, ?, ?)""", (guild.id, member.id, 0, 0, guild.name)
                         )
             await self.bot.db.commit()
+            await ctx.message.add_reaction(f"{constants.check}")
 
         else:
             guild = self.bot.get_guld(guild_id)
@@ -74,6 +77,7 @@ class Owner(commands.Cog):
                         ) VALUES (?, ?, ?, ?, ?)""", (guild.id, member.id, 0, 0, guild.name)
                     )
             await self.bot.db.commit()
+            await ctx.message.add_reaction(f"{constants.check}")
 
 
 def setup(bot):

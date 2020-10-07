@@ -71,6 +71,10 @@ class Events(commands.Cog):
                 else:
                     await member.add_roles(mute_role, reason = "Rol dado al unirse por infraccion previa")
 
+    @commands.Cog.listener()
+    async def on_guild_channel_create(self, channel):
+        pass
+
 
 def setup(bot):
     bot.add_cog(Events(bot))

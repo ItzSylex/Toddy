@@ -43,4 +43,7 @@ for x, y in [(cogs, utils)]:
             except Exception as e:
                 raise e
 
+bot.load_extension("jishaku")
+
+
 bot.run(config.token)

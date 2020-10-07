@@ -18,6 +18,7 @@ class Moderacion(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.dab = Database(bot)
+        self.seconds = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
 
     def same_level(self, author, target) -> bool:
         """
@@ -231,7 +232,7 @@ class Moderacion(commands.Cog):
         brief = f"Quita el permiso para hablar en el canal. La cantidad de h's simboliza la cantidad de minutos.\nCada h equivale a 2 minutos, el maximo es de 15 minutos",
         usage = f"{config.prefix}shhhhhh",
         aliases = [],
-        name = "shh"
+        name = "hush"
     )
     @commands.check_any(
         commands.has_permissions(administrator = True),
@@ -268,6 +269,20 @@ class Moderacion(commands.Cog):
             overwrites[ctx.guild.default_role] = perm
             await ctx.channel.edit(overwrites = overwrites)
             await ctx.channel.send(f"{constants.check} Silenciando canal por {duration} minutos")
+
+    @commands.command(
+        brief = "Quita el silencio del canal",
+        usage = f"{config.prefix}unshh",
+        aliases = ["unsilence"],
+        name = "unshh"
+    )
+    @commands.check_any(
+        commands.has_permissions(administrator = True),
+        commands.has_permissions(manage_channels = True)
+    )
+    async def _unsilence(self, ctx):
+        loop = self.bot.get_cog("Loops")
+        await loop.unmute_channel(ctx.channel.id, ctx.guild.id)
 
     @commands.command(
         brief = "Agrega una advertencia a el usario.",
@@ -341,6 +356,59 @@ class Moderacion(commands.Cog):
         embed.add_field(name = "Mod / Admin:", value = ctx.author.display_name)
         embed.add_field(name = "ID del usuario:", value = member.id)
         await ctx.send(embed = embed)
+
+    @commands.command(
+        brief = "Silencia a un usario por un plazo de tiempo",
+        usage = f"{config.prefix} tempmute 1d 2h 3m",
+        aliases = ["tm", "tempm"]
+    )
+    @commands.check_any(
+        commands.has_guild_permissions(administrator = True),
+        commands.has_guild_permissions(manage_roles = True)
+    )
+    async def tempmute(self, ctx, member: discord.Member, *duration):
+        if duration and self.convert_seconds(duration) is not False:
+            when = self.convert_seconds(duration)
+            query = "INSERT INTO infractions(user_id, guild_id, time_up, type_inf) VALUES (?, ?, ?, ?)"
+            data_tuple = (member.id, ctx.guild.id, str(when), "mute")
+
+            await self.bot.db.execute(query, data_tuple)
+            await self.bot.db.commit()
+
+            loop_cog = self.bot.get_cog("Loops")
+            current_infractions = loop_cog.current_infractions
+            current_infractions[member.id] = [ctx.guild.id, str(when), "mute"]
+            setattr(loop_cog, "current_infractions", current_infractions)
+
+            role = discord.utils.get(ctx.guild.roles, name = "Silenciado ❌")
+            await member.add_roles(role)
+        else:
+            embed = discord.Embed(
+                title = f'{constants.x}  Especifica el tiempo de la siguiente manera:',
+                color = constants.red,
+                description = "<numero>`w` | `d` | `h` | `m` | `s`\nCada letra corresponde a; semanas, dias, horas, minutos, segundos\n\nEjemplo: ```ini\n[;;tempmute <miembro> 2d 3h]```"
+            )
+            return await ctx.send(embed = embed)
+
+    def convert_seconds(self, time):
+        total = 0
+        options = []
+
+        for sub in time:
+            if len(sub) == 1:
+                return False
+            else:
+                for char in sub:
+                    if char.isdigit() is False:
+                        options.append(char)
+        if all(opt.lower() in self.seconds.keys() for opt in options):
+            for each in time:
+                total = int(each[:-1]) * self.seconds[each[-1]] + total
+
+            future_date = datetime.datetime.now() + datetime.timedelta(seconds = total)
+            return future_date
+        else:
+            return False
 
 
 def setup(bot):
