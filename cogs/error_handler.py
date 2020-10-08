@@ -4,6 +4,9 @@ import constants
 import config
 
 
+from utils.resources.custom_embed import CustomEmbed
+
+
 class ErrorHandler(commands.Cog):
 
     def __init__(self, bot):
@@ -35,6 +38,11 @@ class ErrorHandler(commands.Cog):
                 duration = invoked.count("h") * 2
 
                 await ctx.invoke(shh_command, duration if duration <= 15 else 15)
+
+        if isinstance(error, commands.MissingRequiredArgument):
+            if error.param.name == "member":
+                embed = CustomEmbed(types = "missing").c()
+                await ctx.send(embed = embed)
         else:
             raise error
 
