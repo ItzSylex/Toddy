@@ -8,10 +8,12 @@ class CustomEmbed:
 
     def __init__(self, **kwargs):
         self.types = kwargs["types"]
-        self.target = kwargs["target"]
-        self.timestamp = kwargs["timestamp"]
+        try:
+            self.target = kwargs["target"]
+        except KeyError:
+            pass
 
-    def create_embed(self):
+    def c(self):
         embed = discord.Embed()
         embed.color = constants.green
 
@@ -43,9 +45,18 @@ class CustomEmbed:
             embed.description = f"{constants.check} {self.target.display_name} ha recibido un **warn**. {constants.rwarn}"
             return embed
 
+        if self.types == "unwarn":
+            embed.description = f"{constants.check} A {self.target.display_name} se le ha quitado un **warn**."
+            return embed
+
         if self.types == "error":
             embed.color = constants.red
             embed.description = f"{constants.alert} No puedes realizar esta accion con este usario."
+            return embed
+
+        if self.types == "missing":
+            embed.color = constants.red
+            embed.description = f"{constants.alert} Debes mencionar a alguien."
             return embed
 
     def is_obj(self):
