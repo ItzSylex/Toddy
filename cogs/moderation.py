@@ -10,7 +10,7 @@ from utils.database import Database
 import asyncio
 import datetime
 
-from utils.resources import CustomEmbed
+from utils.resources.custom_embed import CustomEmbed
 
 # TODO: Add optional reason to Ban and Kick command
 
