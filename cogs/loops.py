@@ -25,6 +25,9 @@ class Loops(commands.Cog):
 
     async def cache_values(self):
         await self.bot.wait_until_ready()
+
+        self.bot.dab = self.bot.get_cog("Database")
+
         cursor_m = await self.bot.db.execute(
             """SELECT * FROM c_mutes"""
         )

@@ -1,5 +1,6 @@
 import discord
 import constants
+from collections import Counter
 
 from discord.ext import commands
 import config
@@ -36,6 +37,13 @@ class Info(commands.Cog):
         bots = len([member for member in ctx.guild.members if member.bot])
         users = len([member for member in ctx.guild.members if not member.bot])
 
+        status = {}
+        for each in ["mobile", "desktop", "web", None]:
+            status.update({each: Counter(x.status for x in ctx.guild.members if each in x._client_status)})
+
+        for x, y in status.items():
+            if x is not None:
+                await ctx.send(f"{x} and {y}")
 
         fields = [
             (
@@ -118,16 +126,6 @@ class Info(commands.Cog):
 
         top_role = member.top_role.mention if member.top_role.name != "@everyone" else "@everyone"
 
-        if member.mobile_status in statuses:
-            status = f"\n{constants.offline}Escritorio\n{constants.online}Movil\n{constants.offline}Web"
-        if member.desktop_status in statuses:
-            status = f"\n{constants.online}Escritorio\n{constants.offline}Movil\n{constants.offline}Web"
-        if member.web_status in statuses:
-            status = f"\n{constants.offline}Escritorio\n{constants.offline}Movil\n{constants.online}Web"
-
-        else:
-            status = f"{constants.offline}Desconectado"
-
         fields = [
             (
                 "ID:",
@@ -148,12 +146,7 @@ class Info(commands.Cog):
                 "Informacion de Server",
                 f"Se unio en: {joined_at}\nTop Rol: {top_role}\nRoles:\n{roles}",
                 False
-            ),
-            (
-                "Estado",
-                status,
-                True
-            ),
+            )
 
         ]
 

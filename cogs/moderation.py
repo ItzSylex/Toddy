@@ -10,15 +10,36 @@ from utils.database import Database
 import asyncio
 import datetime
 
+from utils.resources import CustomEmbed
 
 # TODO: Add optional reason to Ban and Kick command
+
 
 class Moderacion(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.dab = Database(bot)
-        self.seconds = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
+        self.seconds = {"m": 60, "h": 3600, "d": 86400}
+
+    def convert_seconds(self, time):
+        total = 0
+        options = []
+
+        for sub in time:
+            if len(sub) == 1:
+                return False
+            else:
+                for char in sub:
+                    if char.isdigit() is False:
+                        options.append(char)
+        if all(opt.lower() in self.seconds.keys() for opt in options):
+            for each in time:
+                total = int(each[:-1]) * self.seconds[each[-1]] + total
+
+            future_date = datetime.datetime.now() + datetime.timedelta(seconds = total)
+            return future_date
+        else:
+            return False
 
     def same_level(self, author, target) -> bool:
         """
@@ -53,7 +74,7 @@ class Moderacion(commands.Cog):
         embed.add_field(name = "Mod / Admin:", value = ctx.author.display_name)
         embed.add_field(name = "ID del usuario:", value = member.id)
 
-        if await self.dab.is_mute(member, ctx.guild):
+        if await self.bot.dab.is_mute(member, ctx.guild):
             embed = discord.Embed(
                 title = f'{constants.check} {member.display_name} ya estaba silenciado antes.',
                 color = constants.green
@@ -95,7 +116,7 @@ class Moderacion(commands.Cog):
 
         if self.same_level(ctx.author, member):
             embed = discord.Embed(
-                title = f'{constants.x}  No puedo silenciar a este usario.',
+                title = f'{constants.x}  No puedes silenciar a este usario.',
                 color = constants.red
             )
             return await ctx.send(embed = embed, delete_after = 5.0)
@@ -137,13 +158,12 @@ class Moderacion(commands.Cog):
 
         embed = discord.Embed()
         role = discord.utils.get(ctx.guild.roles, name = "Silenciado ❌")
-        embed.title = f'{constants.check} {member.display_name} ya no esta silenciado.'
         embed.color = constants.green
         embed.add_field(name = "Mod / Admin:", value = ctx.author.display_name)
         embed.add_field(name = "ID del usuario:", value = member.id)
 
         if member is not None:
-            if await self.dab.is_mute(member, ctx.guild):
+            if await self.bot.dab.is_mute(member, ctx.guild):
                 if isinstance(member, discord.Object):
                     embed.title = f'{constants.check} {member.id} ya no esta silenciado.'
                     await self.bot.db.execute(
@@ -151,6 +171,7 @@ class Moderacion(commands.Cog):
                     )
                     await self.bot.db.commit()
                 else:
+                    embed.title = f'{constants.check} {member.display_name} ya no esta silenciado.'
                     await member.remove_roles(role)
                     await self.bot.db.execute(
                         """UPDATE users SET mute = 0 WHERE guild_id = ? AND user_id = ?""", (ctx.guild.id, member.id)
@@ -183,7 +204,7 @@ class Moderacion(commands.Cog):
         embed.add_field(name = "ID del usuario:", value = member.id)
         if self.same_level(ctx.author, member):
             embed = discord.Embed(
-                title = f'{constants.x}  No puedo banear a este usario.',
+                title = f'{constants.x}  No puedes banear a este usario.',
                 color = constants.red
             )
             return await ctx.send(embed = embed, delete_after = 5.0)
@@ -214,7 +235,7 @@ class Moderacion(commands.Cog):
     async def kick(self, ctx, member: discord.Member):
         if self.same_level(ctx.author, member):
             embed = discord.Embed(
-                title = f'{constants.x}  No puedo expulsar a este usario.',
+                title = f'{constants.x}  No puedes expulsar a este usario.',
                 color = constants.red
             )
             return await ctx.send(embed = embed, delete_after = 5.0)
@@ -298,7 +319,7 @@ class Moderacion(commands.Cog):
         embed = discord.Embed()
 
         if self.same_level(ctx.author, member):
-            embed.title = f'{constants.x}  No puedo darle warn a este usario.'
+            embed.title = f'{constants.x}  No puedes darle warn a este usario.'
             embed.color = constants.red
             return await ctx.send(embed = embed, delete_after = 5.0)
 
@@ -310,7 +331,7 @@ class Moderacion(commands.Cog):
         await self.bot.db.execute(query, data_tuple)
         await self.bot.db.commit()
 
-        if await self.dab.is_max(member, member.guild):
+        if await self.bot.dab.is_max(member, member.guild):
             await ctx.guild.ban(discord.Object(id = member.id), delete_message_days = 0)
             await ctx.send(f'{constants.check} {member} ha sido baneado tras recibir 3 warns')
 
@@ -333,15 +354,13 @@ class Moderacion(commands.Cog):
     )
     async def unwarn(self, ctx, member: discord.Member):
         embed = discord.Embed()
+        embed.title = f'{constants.x}  No puedes quitarle un warn a este usario.'
+        embed.color = constants.red
 
         if self.same_level(ctx.author, member):
-            embed.title = f'{constants.x}  No puedo quitarle un warn a este usario.'
-            embed.color = constants.red
             return await ctx.send(embed = embed, delete_after = 5.0)
 
-        if await self.dab.is_zero(member, member.guild):
-            embed.title = f'{constants.x}  No puedo quitarle un warn a este usario.'
-            embed.color = constants.red
+        if await self.bot.dab.is_zero(member, member.guild):
             embed.description = "No tiene ningun warn"
             return await ctx.send(embed = embed, delete_after = 5.0)
 
@@ -367,6 +386,13 @@ class Moderacion(commands.Cog):
         commands.has_guild_permissions(manage_roles = True)
     )
     async def tempmute(self, ctx, member: discord.Member, *duration):
+        if self.same_level(ctx.author, member):
+            embed = discord.Embed(
+                title = f'{constants.x}  No puedes silenciar a este usario.',
+                color = constants.red
+            )
+            return await ctx.send(embed = embed, delete_after = 5.0)
+
         if duration and self.convert_seconds(duration) is not False:
             when = self.convert_seconds(duration)
             query = "INSERT INTO infractions(user_id, guild_id, time_up, type_inf) VALUES (?, ?, ?, ?)"
@@ -386,29 +412,9 @@ class Moderacion(commands.Cog):
             embed = discord.Embed(
                 title = f'{constants.x}  Especifica el tiempo de la siguiente manera:',
                 color = constants.red,
-                description = "<numero>`w` | `d` | `h` | `m` | `s`\nCada letra corresponde a; semanas, dias, horas, minutos, segundos\n\nEjemplo: ```ini\n[;;tempmute <miembro> 2d 3h]```"
+                description = "<numero>`d` | `h` | `m` |\nCada letra corresponde a; semanas, dias, horas, minutos, segundos\n\nEjemplo: ```ini\n[;;tempmute <miembro> 2d 3h]```"
             )
             return await ctx.send(embed = embed)
-
-    def convert_seconds(self, time):
-        total = 0
-        options = []
-
-        for sub in time:
-            if len(sub) == 1:
-                return False
-            else:
-                for char in sub:
-                    if char.isdigit() is False:
-                        options.append(char)
-        if all(opt.lower() in self.seconds.keys() for opt in options):
-            for each in time:
-                total = int(each[:-1]) * self.seconds[each[-1]] + total
-
-            future_date = datetime.datetime.now() + datetime.timedelta(seconds = total)
-            return future_date
-        else:
-            return False
 
 
 def setup(bot):

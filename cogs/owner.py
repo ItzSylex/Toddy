@@ -8,13 +8,13 @@ import os
 import constants
 
 import inspect
+from utils.resources.custom_embed import CustomEmbed
 
 
 class Owner(commands.Cog):
     """Commands only for the bot owner"""
     def __init__(self, bot):
         self.bot = bot
-        self.dab = Database(bot)
 
     async def cog_check(self, ctx) -> bool:
         """Makes sure only owner can run commands"""
@@ -31,12 +31,13 @@ class Owner(commands.Cog):
             for x, y in [(cogs, utils)]:
                 for cog_file in cogs:
                     if cog_file.endswith('.py'):
-                        try:
-                            self.bot.reload_extension(f'cogs.{cog_file[:-3]}')
-                            await ctx.message.add_reaction(f"{constants.check}")
-                        except Exception as e:
-                            raise e
-                            await ctx.message.add_reaction(f"{constants.x}")
+                        if cog_file != "loops.py":
+                            try:
+                                self.bot.reload_extension(f'cogs.{cog_file[:-3]}')
+                                await ctx.message.add_reaction(f"{constants.check}")
+                            except Exception as e:
+                                raise e
+                                await ctx.message.add_reaction(f"{constants.x}")
                 for utils_file in utils:
                     if utils_file.endswith('.py'):
                         try:
@@ -58,7 +59,7 @@ class Owner(commands.Cog):
         if guild_id is None:
             for guild in self.bot.guilds:
                 for member in guild.members:
-                    if not await self.dab.exists_db(member, guild):
+                    if not await self.bot.dab.exists_db(member, guild):
                         await self.bot.db.execute(
                             """INSERT INTO users (
                                 guild_id, user_id, mute, warns, guild_name
@@ -70,7 +71,7 @@ class Owner(commands.Cog):
         else:
             guild = self.bot.get_guld(guild_id)
             for member in guild.members:
-                if not await self.dab.exists_db(member, guild):
+                if not await self.bot.dab.exists_db(member, guild):
                     await self.bot.db.execute(
                         """INSERT INTO users (
                             guild_id, user_id, mute, warns, guild_name
