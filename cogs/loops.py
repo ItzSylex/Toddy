@@ -102,9 +102,8 @@ class Loops(commands.Cog):
 
         await channel.edit(overwrites = overwrites)
 
-        await channel.send(
-            f"{constants.check} Este canal ya no esta silenciado"
-        )
+        embed = discord.Embed(description = f"{constants.check} {constants.unmute} Este canal ya no esta silenciado.", color = constants.green)
+        await channel.send(embed = embed)
 
     async def remove_infraction(self, user_id: int, guild_id: int, inf_type: str):
         guild = self.bot.get_guild(guild_id)
@@ -122,8 +121,14 @@ class Loops(commands.Cog):
             await guild.unban(discord.Object(id = user_id))
 
         if inf_type == "mute":
-            role = discord.utils.get(guild.roles, name = "Silenciado ❌")
-            await user.remove_roles(role)
+            embed = discord.Embed(description = f"{constants.check} Tu silencio en {guild.name} ha **terminado**.")
+            try:
+                await user.send(embed = embed)
+            except Exception:
+                pass
+            finally:
+                role = discord.utils.get(guild.roles, name = "Silenciado ❌")
+                await user.remove_roles(role)
 
 
 def setup(bot):

@@ -29,6 +29,10 @@ class CustomEmbed:
             embed.description = f"{constants.check} {self.target.display_name} ha sido **silenciado**. {constants.mute}"
             return embed
 
+        if self.types == "tempmute":
+            embed.description = f"{constants.check} {self.target.display_name} ha sido **silenciado** temporalmente. {constants.mute}"
+            return embed
+
         if self.types == "kick":
             embed.description = f"{constants.check} {self.target.display_name} ha sido **expulsado**. {constants.kick}"
             return embed

@@ -42,11 +42,7 @@ class Moderacion(commands.Cog):
             return False
 
     def same_level(self, author, target) -> bool:
-        """
-        Helper function, checks if the target on commands like
-        ban, mute, kick have permissions that should not make it possible
-        to recieve the infraction
-        """
+
         if isinstance(target, discord.Object):
             return False
         else:
@@ -62,10 +58,6 @@ class Moderacion(commands.Cog):
                 return False
 
     async def add_mute(self, ctx, member, role):
-
-        """
-        Helper function that applies mute
-        """
 
         embed = CustomEmbed(types = "mute", target = member).c()
 
@@ -91,10 +83,6 @@ class Moderacion(commands.Cog):
         commands.has_guild_permissions(manage_roles = True)
     )
     async def mute(self, ctx, member: discord.Member):
-        """
-        Mutes an user by adding a role, if the role does not exists
-        it creates it and set the corresponding overwrites
-        """
 
         mute_role = discord.utils.get(ctx.guild.roles, name = "Silenciado ❌")
 
@@ -132,10 +120,6 @@ class Moderacion(commands.Cog):
         commands.has_guild_permissions(manage_roles = True)
     )
     async def unmute(self, ctx, member: typing.Union[discord.Member, discord.Object]):
-
-        """
-        Unmutes the user by removing the role
-        """
 
         embed = CustomEmbed(types = "unmute", target = member).c()
         role = discord.utils.get(ctx.guild.roles, name = "Silenciado ❌")
@@ -212,10 +196,6 @@ class Moderacion(commands.Cog):
             return
         else:
 
-            """
-            We update our database and update the cache on the current muted channels
-            """
-
             query = "INSERT INTO c_mutes(channel_id, time_up, guild_id) VALUES (?, ?, ?)"
 
             when = datetime.datetime.now() + datetime.timedelta(minutes = duration)
@@ -236,7 +216,7 @@ class Moderacion(commands.Cog):
             perm.send_messages = False
             overwrites[ctx.guild.default_role] = perm
             await ctx.channel.edit(overwrites = overwrites)
-            embed = discord.Embed(description = f"{constants.check} Silenciando canal por {duration} minutos", color = constants.green)
+            embed = discord.Embed(description = f"{constants.check} {constants.mute}Silenciando canal por {duration} **minutos**", color = constants.green)
             await ctx.channel.send(embed = embed)
 
     @commands.command(
@@ -339,6 +319,9 @@ class Moderacion(commands.Cog):
 
             role = discord.utils.get(ctx.guild.roles, name = "Silenciado ❌")
             await member.add_roles(role)
+
+            embed = CustomEmbed(types = "tempmute", target = member).c()
+            return await ctx.send(embed = embed)
         else:
             embed = discord.Embed(
                 title = f'{constants.x}  Especifica el tiempo de la siguiente manera:',

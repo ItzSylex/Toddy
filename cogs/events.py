@@ -57,7 +57,7 @@ class Events(commands.Cog):
                 if not mute_role:
                     await member.guild.create_role(name = 'Silenciado ❌', color = discord.Colour(0x666666))
 
-                    for channel in ctx.guild.channels:
+                    for channel in member.guild.channels:
                         overwrites = channel.overwrites
                         if isinstance(channel, discord.TextChannel):
                             overwrites[mute_role] = discord.PermissionOverwrite(send_messages = False, add_reactions = False)
@@ -73,7 +73,29 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_channel_create(self, channel):
-        pass
+        mute_role = discord.utils.get(channel.guild.roles, name = "Silenciado ❌")
+
+        if not mute_role:
+            await channel.guild.create_role(name = 'Silenciado ❌', color = discord.Colour(0x666666))
+
+            for channel in channel.guild.channels:
+                overwrites = channel.overwrites
+                if isinstance(channel, discord.TextChannel):
+                    overwrites[mute_role] = discord.PermissionOverwrite(send_messages = False, add_reactions = False)
+
+                if isinstance(channel, discord.VoiceChannel):
+                    overwrites[mute_role] = discord.PermissionOverwrite(speak = False)
+
+                await channel.edit(overwrites = overwrites)
+        else:
+            overwrites = channel.overwrites
+            if isinstance(channel, discord.TextChannel):
+                overwrites[mute_role] = discord.PermissionOverwrite(send_messages = False, add_reactions = False)
+
+            if isinstance(channel, discord.VoiceChannel):
+                overwrites[mute_role] = discord.PermissionOverwrite(speak = False)
+
+            await channel.edit(overwrites = overwrites)
 
 
 def setup(bot):

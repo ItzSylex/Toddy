@@ -22,10 +22,11 @@ class Informacion(commands.Cog):
     async def help_(self, ctx, *, query: str = None):
         if not query:
             embed = discord.Embed(
-                title = f'{constants.info} Lista de comandos.',
                 description = f'Usa `{config.prefix}help [comando]` o `{config.prefix}help [categoria]` para mas informacion.',
                 color = 0x02afe6
             )
+            file = discord.File("emotes/info_thumb.png", filename="image.png")
+            embed.set_thumbnail(url="attachment://image.png")
 
             for name, cog in self.bot.cogs.items():
                 if name == "Owner":
@@ -35,7 +36,7 @@ class Informacion(commands.Cog):
                     pass
                 else:
                     embed.add_field(name=f"{name}:", value = f"```ini\n[{cmds_in_cog}]```", inline=False)
-            return await ctx.send(embed=embed)
+            return await ctx.send(file = file, embed =  embed)
 
         if query in self.bot.cogs.keys():
             cog = self.bot.get_cog(query)
