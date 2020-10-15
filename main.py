@@ -6,14 +6,18 @@ import config
 import logging
 from datetime import datetime
 
+intents = discord.Intents.all()
+
 bot = commands.Bot(
     command_prefix = commands.when_mentioned_or(config.prefix),
     allowed_mentions = discord.AllowedMentions(everyone = False),
     case_insensitive = True,
-    activity = discord.Activity(type = discord.ActivityType.watching, name = "All of you | ;;help")
+    activity = discord.Activity(type = discord.ActivityType.watching, name = ";;help"),
+    intents = intents
 )
 
 bot.remove_command('help')
+bot.load_extension("jishaku")
 
 bot.start_time = datetime.utcnow()
 
@@ -42,8 +46,5 @@ for x, y in [(cogs, utils)]:
                 bot.load_extension(f'utils.{utils_file[:-3]}')
             except Exception as e:
                 raise e
-
-bot.load_extension("jishaku")
-
 
 bot.run(config.token)
