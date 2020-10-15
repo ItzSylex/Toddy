@@ -12,6 +12,8 @@ class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.dab = Database(self.bot)
+        self.bot.snipe = {}
+        self.bot.snipe_edit = {}
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
@@ -96,6 +98,16 @@ class Events(commands.Cog):
                 overwrites[mute_role] = discord.PermissionOverwrite(speak = False)
 
             await channel.edit(overwrites = overwrites)
+
+    @commands.Cog.listener()
+    async def on_message_delete(self, message):
+        self.bot.snipe[message.channel.id] = message
+
+    @commands.Cog.listener()
+    async def on_message_edit(self, before, after):
+
+        if not after.embeds and not before.embeds:
+            self.bot.snipe_edit[before.channel.id] = [before, after]
 
 
 def setup(bot):
