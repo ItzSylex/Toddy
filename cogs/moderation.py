@@ -330,6 +330,45 @@ class Moderacion(commands.Cog):
             )
             return await ctx.send(embed = embed)
 
+    @commands.command(
+        brief = "Banea a un usario por un plazo de tiempo",
+        usage = f"{config.prefix} tempban 1d 2h 3m",
+        aliases = ["tb", "tempb"]
+    )
+    @commands.check_any(
+        commands.has_guild_permissions(administrator = True),
+        commands.has_guild_permissions(ban_members = True)
+    )
+    async def tempban(self, ctx, member: discord.Member, *duration):
+        if self.same_level(ctx.author, member):
+            embed = CustomEmbed(types = "error").c()
+            return await ctx.send(embed = embed)
+
+        if duration and self.convert_seconds(duration) is not False:
+            when = self.convert_seconds(duration)
+            query = "INSERT INTO infractions(user_id, guild_id, time_up, type_inf) VALUES (?, ?, ?, ?)"
+            data_tuple = (member.id, ctx.guild.id, str(when), "ban")
+
+            await self.bot.db.execute(query, data_tuple)
+            await self.bot.db.commit()
+
+            loop_cog = self.bot.get_cog("Loops")
+            current_infractions = loop_cog.current_infractions
+            current_infractions[member.id] = [ctx.guild.id, str(when), "ban"]
+            setattr(loop_cog, "current_infractions", current_infractions)
+
+            await ctx.guild.ban(discord.Object(id = member.id))
+
+            embed = CustomEmbed(types = "tempban", target = member).c()
+            return await ctx.send(embed = embed)
+        else:
+            embed = discord.Embed(
+                title = f'{constants.x}  Especifica el tiempo de la siguiente manera:',
+                color = constants.red,
+                description = "<numero>`d` | `h` | `m` |\nCada letra corresponde a; semanas, dias, horas, minutos, segundos\n\nEjemplo: ```ini\n[;;tempmute <miembro> 2d 3h]```"
+            )
+            return await ctx.send(embed = embed)
+
 
 def setup(bot):
     bot.add_cog(Moderacion(bot))
