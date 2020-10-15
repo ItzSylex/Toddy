@@ -9,9 +9,10 @@ from datetime import datetime
 import asyncio
 import os
 import random
+import emoji
 
 
-class Info(commands.Cog):
+class Varios(commands.Cog):
 
     """Comandos varios"""
 
@@ -37,42 +38,29 @@ class Info(commands.Cog):
         bots = len([member for member in ctx.guild.members if member.bot])
         users = len([member for member in ctx.guild.members if not member.bot])
 
-        status = {}
-        for each in ["mobile", "desktop", "web", None]:
-            status.update({each: Counter(x.status for x in ctx.guild.members if each in x._client_status)})
-
-        for x, y in status.items():
-            if x is not None:
-                await ctx.send(f"{x} and {y}")
-
         fields = [
-            (
-                "Miembros",
-                f"Total: {members:,}\n{constants.online}Conectado: {statuses[0]}{constants.idle}Ausente{statuses[1]}\n{constants.dnd}No Molestar{statuses[2]}{constants.offline}Desconectado{statuses[3]}"
-            )
-        ]
-
-        fields = [
-            (
-                "Miembros",
-                f"Total: {members:,}\n Bots: {bots:,}\n Miembros {users:,}",
-                True
-            ),
-            (
-                "Canales",
-                f"De texto: {len(ctx.guild.text_channels)}\nDe voz: {len(ctx.guild.voice_channels)}\nCategorias: {len(ctx.guild.categories)}",
-                True
-            ),
             (
                 f"Estados",
-                f"{constants.online}{statuses[0]}{constants.idle}{statuses[1]}\n{constants.dnd}{statuses[2]}{constants.offline}{statuses[3]}",
-                False
+                f"{constants.online} Conectado: {statuses[0]:,}\n{constants.idle} Ausente: {statuses[1]:,}\n{constants.dnd} No Molestar: {statuses[2]:,}\n{constants.offline} Desconectado: {statuses[3]:,}",
+                True
+            ),
+            (
+                "Miembros",
+                f"{constants.members} Total: {members:,}\n{constants.bots} Bots: {bots:,}\n{constants.members} Miembros {users:,}",
+                True
+            ),
+
+            (
+                "Canales",
+                f"{constants.channel} De texto:{len(ctx.guild.text_channels)}\n{constants.voice} De voz: {len(ctx.guild.voice_channels)}",
+                True
             )
         ]
 
         embed = discord.Embed(
-            title=f'Informacion de {ctx.guild.name}',
-            description = f"**Owner**: \n ```\n{ctx.guild.owner.name}```"
+            title = f'Informacion de {ctx.guild.name}',
+            description = f"**Owner**: \n ```\n{ctx.guild.owner.name}```",
+            color = constants.blue
         )
         embed.set_footer(text=f'Creado en | {ctx.guild.created_at.strftime("%b %d/%Y")}')
         embed.set_thumbnail(url=ctx.guild.icon_url)
@@ -94,20 +82,21 @@ class Info(commands.Cog):
         member = ctx.author if not member else member
 
         embed = discord.Embed(
-            title = f"{member}'s Avatar",
-            url = str(member.avatar_url),
-            timestamp = datetime.utcnow()
+            title = f"Avatar de {member}",
+            url = member.avatar_url,
+            timestamp = datetime.utcnow(),
+            color = constants.blue
         )
         embed.set_footer(text = f"Pedido por {ctx.message.author}")
-        embed.set_image(url = str(member.avatar_url))
+        embed.set_image(url = member.avatar_url)
         await ctx.send(embed = embed)
 
     @commands.command(
         brief = "Muestra informacion del usario",
         usage = f"{config.prefix}info",
-        aliases = ["userinfo", "ui", "i"]
+        aliases = ["info", "ui", "i"]
     )
-    async def info(self, ctx, member: discord.Member = None):
+    async def userinfo(self, ctx, member: discord.Member = None):
         member = ctx.author if not member else member
 
         created_at = member.created_at.strftime('%B %d, %Y')
@@ -125,6 +114,13 @@ class Info(commands.Cog):
         statuses = [discord.Status.idle, discord.Status.online, discord.Status.dnd]
 
         top_role = member.top_role.mention if member.top_role.name != "@everyone" else "@everyone"
+
+        sql = """SELECT warns FROM users WHERE user_id = ? AND guild_id = ?"""
+
+        data = (member.id, ctx.guild.id)
+
+        cursor = await self.bot.db.execute(sql, data)
+        warns = await cursor.fetchone()
 
         fields = [
             (
@@ -146,6 +142,11 @@ class Info(commands.Cog):
                 "Informacion de Server",
                 f"Se unio en: {joined_at}\nTop Rol: {top_role}\nRoles:\n{roles}",
                 False
+            ),
+            (
+                "Infracciones",
+                f"Warns: {warns[0]}",
+                False
             )
 
         ]
@@ -159,6 +160,66 @@ class Info(commands.Cog):
 
         await ctx.send(embed = embed)
 
+    @commands.command(
+        brief = "Muestra el ultimo mensaje borrado",
+        usage = f"{config.prefix}snipe"
+    )
+    async def snipe(self, ctx, option = None):
+        if option is None:
+            try:
+                message = self.bot.snipe[ctx.channel.id]
+            except KeyError:
+                return await ctx.send("No hay nada que ver aca")
+            embed = discord.Embed(
+                description = message.content,
+                color = constants.blue,
+                timestamp = message.created_at
+            )
+            embed.set_author(name = str(message.author), icon_url = message.author.avatar_url)
+            del self.bot.snipe[ctx.channel.id]
+            await ctx.send(embed = embed)
+        if option.lower() == "edit":
+            try:
+                list_message = self.bot.snipe_edit[ctx.channel.id]
+            except KeyError:
+                return await ctx.send("No hay nada que ver aca")
+            embed = discord.Embed(
+                description = f"**Antes:** {list_message[0].content}\n**Despues:** {list_message[1].content}",
+                color = constants.blue,
+                timestamp = list_message[1].created_at
+            )
+            embed.set_author(name = str(list_message[1].author), icon_url = list_message[1].author.avatar_url)
+            del self.bot.snipe_edit[ctx.channel.id]
+            await ctx.send(embed = embed)
+
+    @commands.command(
+        brief = "Respondo si o no a una pregunta",
+        usage = f"{config.prefix}8ball [pregunta]",
+        aliases = ["pregunta", "p", "8b"],
+        name = "8ball"
+    )
+    async def _8ball(self, ctx, *, message):
+        if message:
+            respuesta = random.choice([f"Si. {constants.check}", f"No. {constants.x}"])
+            await ctx.send(respuesta)
+        else:
+            await ctx.send("Umm")
+
+    @commands.command(
+        brief = "Agrega un emoji aplaudiendo entre cada palabra",
+        usage = f"{config.prefix}clap [frase]"
+    )
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def clap(self, ctx, *, message):
+
+        message = message.replace(" ", f" 👏 ")
+
+        if len(message) >= 1200:
+            return await ctx.send("Este mensaje es muy largo :(")
+
+        await ctx.message.delete()
+        await ctx.send(message)
+
 
 def setup(bot):
-    bot.add_cog(Info(bot))
+    bot.add_cog(Varios(bot))
