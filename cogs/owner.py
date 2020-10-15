@@ -34,7 +34,6 @@ class Owner(commands.Cog):
                         if cog_file != "loops.py":
                             try:
                                 self.bot.reload_extension(f'cogs.{cog_file[:-3]}')
-                                await ctx.message.add_reaction(f"{constants.check}")
                             except Exception as e:
                                 raise e
                                 await ctx.message.add_reaction(f"{constants.x}")
@@ -42,14 +41,17 @@ class Owner(commands.Cog):
                     if utils_file.endswith('.py'):
                         try:
                             self.bot.reload_extension(f'utils.{utils_file[:-3]}')
-                            await ctx.message.add_reaction(f"{constants.check}")
                         except Exception as e:
                             raise e
                             await ctx.message.add_reaction(f"{constants.x}")
+
+            embed = discord.Embed(description = f"{constants.check} Listo el Reload.", color = constants.green)
+            await ctx.send(embed = embed)
         else:
             try:
                 self.bot.reload_extension(f'cogs.{extension}')
-                await ctx.message.add_reaction(f"{constants.check}")
+                embed = discord.Embed(description = f"{constants.check} Listo el Reload.", color = constants.green)
+                await ctx.send(embed = embed)
             except Exception as e:
                 raise e
                 await ctx.message.add_reaction(f"{constants.x}")
@@ -79,6 +81,12 @@ class Owner(commands.Cog):
                     )
             await self.bot.db.commit()
             await ctx.message.add_reaction(f"{constants.check}")
+
+    @commands.command(hidden = True)
+    @commands.is_owner()
+    async def insert_economic(self, ctx):
+        for member in ctx.guild.members:
+            await self.if_not_insert(member)
 
 
 def setup(bot):
