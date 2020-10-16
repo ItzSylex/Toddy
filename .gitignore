@@ -3,3 +3,5 @@ __pycache__
 constants.py
 
 config.py
+
+.vscode
