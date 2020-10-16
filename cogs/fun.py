@@ -1,4 +1,5 @@
 import discord
+import random
 import constants
 from collections import Counter
 
@@ -6,10 +7,6 @@ from discord.ext import commands
 import config
 from datetime import datetime
 
-import asyncio
-import os
-import random
-import emoji
 
 
 class Varios(commands.Cog):

@@ -19,12 +19,12 @@ class ErrorHandler(commands.Cog):
         if hasattr(ctx.command, 'on_error'):
             return
 
-        skip = (commands.BadArgument, )
+        skip = (commands.BadArgument, commands.CommandOnCooldown)
 
         error = getattr(error, 'original', error)
 
-        # if isinstance(error, skip):
-        #     return
+        if isinstance(error, skip):
+            return
 
         if isinstance(error, commands.CommandNotFound):
             invoked = ctx.invoked_with

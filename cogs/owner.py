@@ -31,8 +31,9 @@ class Owner(commands.Cog):
             for x, y in [(cogs, utils)]:
                 for cog_file in cogs:
                     if cog_file.endswith('.py'):
-                        if cog_file != "loops.py":
+                        if cog_file not in ["loops.py", "economy.py"]:
                             try:
+                                print(cog_file)
                                 self.bot.reload_extension(f'cogs.{cog_file[:-3]}')
                             except Exception as e:
                                 raise e
@@ -81,12 +82,6 @@ class Owner(commands.Cog):
                     )
             await self.bot.db.commit()
             await ctx.message.add_reaction(f"{constants.check}")
-
-    @commands.command(hidden = True)
-    @commands.is_owner()
-    async def insert_economic(self, ctx):
-        for member in ctx.guild.members:
-            await self.if_not_insert(member)
 
 
 def setup(bot):
