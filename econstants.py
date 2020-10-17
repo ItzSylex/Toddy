@@ -101,7 +101,7 @@ shop = [
         "name": "Fragmento de llave comun",
         "price": 600,
         "description": "Usalo para craftear una llave comun, necesitaras al menos 4",
-        "emoji": "",
+        "emoji": "<:com_frag:766757065422536708>",
         "file_code": "com_frag",
         "longer_description": ""
     },
@@ -109,7 +109,7 @@ shop = [
         "name": "Fragmento de llave epica",
         "price": 2400,
         "description": "Usalo para craftear una llave epica, necesitaras al menos 4",
-        "emoji": "",
+        "emoji": "<:epic_frag:766757065493315636>",
         "file_code": "epic_frag",
         "longer_description": ""
     },
@@ -117,7 +117,7 @@ shop = [
         "name": "Fragmento de llave legendaria",
         "price": 5000,
         "description": "Usalo para craftear una llave legendaria, necesitaras al menos 4",
-        "emoji": "",
+        "emoji": "<:legen_frag:766757065968058470>",
         "file_code": "legen_frag",
         "longer_description": ""
     },
@@ -134,7 +134,7 @@ shop = [
         "price": 500,
         "description": "Abrela para obtener quacks o hasta un item legendario",
         "emoji": "<:epic_crate:766615392943603744>",
-        "file_code": "epic+crate",
+        "file_code": "epic_crate",
         "longer_description": ""
     },
     {
