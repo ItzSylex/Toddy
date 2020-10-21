@@ -195,12 +195,13 @@ class Varios(commands.Cog):
         aliases = ["pregunta", "p", "8b"],
         name = "8ball"
     )
-    async def _8ball(self, ctx, *, message):
+    async def _8ball(self, ctx, *, message = None):
         if message:
             respuesta = random.choice([f"Si. {constants.check}", f"No. {constants.x}"])
-            await ctx.send(respuesta)
+            embed = discord.Embed(color = constants.blue, description = respuesta)
+            await ctx.send(embed = embed)
         else:
-            await ctx.send("Umm")
+            await ctx.send("Pon una pregunta.")
 
     @commands.command(
         brief = "Agrega un emoji aplaudiendo entre cada palabra",

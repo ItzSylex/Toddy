@@ -18,7 +18,7 @@ class Logger(commands.Cog):
         channel = self.bot.get_channel(768260081657577482)
 
         embed = discord.Embed(
-            description = f"{constants.check} Completed command **{ctx.command.name}** in **{ctx.guild.name}**",
+            description = f"{constants.check} Completed command **{ctx.command.name}** in **{ctx.guild.name}** by **{ctx.author}**",
             color = constants.green
         )
         await channel.send(embed = embed)
