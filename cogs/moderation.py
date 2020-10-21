@@ -12,8 +12,6 @@ import datetime
 
 from utils.resources.custom_embed import CustomEmbed
 
-# TODO: Add optional reason to Ban and Kick command
-
 
 class Moderacion(commands.Cog):
 
@@ -86,29 +84,29 @@ class Moderacion(commands.Cog):
 
         mute_role = discord.utils.get(ctx.guild.roles, name = "Silenciado ❌")
 
+        if not mute_role:
+            mute_role = await ctx.guild.create_role(name = 'Silenciado ❌', color = discord.Colour(0x666666))
+
         if self.same_level(ctx.author, member):
             embed = CustomEmbed(types = "error").c()
             return await ctx.send(embed = embed)
 
-        if not mute_role:
-            mute_role = await ctx.guild.create_role(name = 'Silenciado ❌', color = discord.Colour(0x666666))
-
-            for channel in ctx.guild.channels:
-                overwrites = channel.overwrites
+        for channel in ctx.guild.channels:
+            overwrites = channel.overwrites
+            try:
+                permissions = overwrites[mute_role]
+            except KeyError:
                 if isinstance(channel, discord.TextChannel):
                     overwrites[mute_role] = discord.PermissionOverwrite(send_messages = False, add_reactions = False)
+                    await channel.edit(overwrites = overwrites)
 
                 if isinstance(channel, discord.VoiceChannel):
                     overwrites[mute_role] = discord.PermissionOverwrite(speak = False)
+                    await channel.edit(overwrites = overwrites)
 
-                await channel.edit(overwrites = overwrites)
 
-            await ctx.send(f"{constants.check} El rol Silenciado ha sido creado y los canales han sido editados", delete_after = 5.0)
+        await self.add_mute(ctx, member, mute_role)
 
-            await self.add_mute(ctx, member, mute_role)
-
-        else:
-            await self.add_mute(ctx, member, mute_role)
 
     @commands.command(
         brief = "Quita el silencio de un usuario\n Para quitar el mute de alguien que no este en el servidor, usa su ID",
@@ -304,6 +302,17 @@ class Moderacion(commands.Cog):
             embed = CustomEmbed(types = "error").c()
             return await ctx.send(embed = embed)
 
+        mute_role = discord.utils.get(ctx.guild.roles, name = "Silenciado ❌")
+        loop_cog = self.bot.get_cog("Loops")
+        current_infractions = loop_cog.current_infractions
+
+        if member.id in current_infractions.keys():
+            embed = discord.Embed(description = f"{constants.x} Este usario ya estaba muteado temporalmente antes.", color = constants.red)
+            return await ctx.send(embed = embed)
+
+        if not mute_role:
+            mute_role = await ctx.guild.create_role(name = 'Silenciado ❌', color = discord.Colour(0x666666))
+
         if duration and self.convert_seconds(duration) is not False:
             when = self.convert_seconds(duration)
             query = "INSERT INTO infractions(user_id, guild_id, time_up, type_inf) VALUES (?, ?, ?, ?)"
@@ -312,13 +321,23 @@ class Moderacion(commands.Cog):
             await self.bot.db.execute(query, data_tuple)
             await self.bot.db.commit()
 
-            loop_cog = self.bot.get_cog("Loops")
-            current_infractions = loop_cog.current_infractions
             current_infractions[member.id] = [ctx.guild.id, str(when), "mute"]
             setattr(loop_cog, "current_infractions", current_infractions)
 
-            role = discord.utils.get(ctx.guild.roles, name = "Silenciado ❌")
-            await member.add_roles(role)
+            for channel in ctx.guild.channels:
+                overwrites = channel.overwrites
+                try:
+                    permissions = overwrites[mute_role]
+                except KeyError:
+                    if isinstance(channel, discord.TextChannel):
+                        overwrites[mute_role] = discord.PermissionOverwrite(send_messages = False, add_reactions = False)
+                        await channel.edit(overwrites = overwrites)
+
+                    if isinstance(channel, discord.VoiceChannel):
+                        overwrites[mute_role] = discord.PermissionOverwrite(speak = False)
+                        await channel.edit(overwrites = overwrites)
+
+            await member.add_roles(mute_role)
 
             embed = CustomEmbed(types = "tempmute", target = member).c()
             return await ctx.send(embed = embed)

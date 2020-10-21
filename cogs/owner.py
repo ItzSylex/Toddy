@@ -33,7 +33,6 @@ class Owner(commands.Cog):
                     if cog_file.endswith('.py'):
                         if cog_file not in ["loops.py", "economy.py"]:
                             try:
-                                print(cog_file)
                                 self.bot.reload_extension(f'cogs.{cog_file[:-3]}')
                             except Exception as e:
                                 raise e
