@@ -17,7 +17,7 @@ class Bot(commands.Cog):
 
     @commands.command(
         brief = "Muestra todos los comandos disponibles",
-        name = "help", usage = f";;help"
+        name = "help", usage = f";help"
     )
     async def help_(self, ctx, *, query: str = None):
         if not query:
@@ -64,14 +64,14 @@ class Bot(commands.Cog):
 
     @commands.command(
         brief = "Muestra algunos detalles del bot",
-        usage = ";;stats"
+        usage = ";botinfo"
     )
     async def botinfo(self, ctx):
         embed = discord.Embed(
             title = f"{constants.info} Informacion de Toddy:",
             color = 0x02afe6,
-            description = """Unete al servidor de **soporte** [clickeando aca](https://discord.com/channels/@me)
-            Para **invitar** a Toddy [clickea aca](https://discord.com/channels/@me), asegurate de darle todos los permisos necesarios."""
+            description = """Unete al servidor de **soporte** [clickeando aca](https://discord.gg/Q288FWu)
+            Para **invitar** a Toddy [clickea aca](https://discord.com/api/oauth2/authorize?client_id=756377891264135249&permissions=8&scope=bot), asegurate de darle todos los permisos necesarios."""
         )
         embed.set_thumbnail(url = self.bot.user.avatar_url)
         members = [guild.member_count for guild in self.bot.guilds]

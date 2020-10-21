@@ -1,8 +1,6 @@
 import discord
 import constants
 
-from babel.dates import format_date
-
 
 class CustomEmbed:
 

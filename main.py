@@ -12,7 +12,7 @@ bot = commands.Bot(
     command_prefix = commands.when_mentioned_or(config.prefix),
     allowed_mentions = discord.AllowedMentions(everyone = False),
     case_insensitive = True,
-    activity = discord.Activity(type = discord.ActivityType.watching, name = ";;help"),
+    activity = discord.Activity(type = discord.ActivityType.watching, name = ";help"),
     intents = intents
 )
 

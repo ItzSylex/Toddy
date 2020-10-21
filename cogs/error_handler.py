@@ -43,9 +43,26 @@ class ErrorHandler(commands.Cog):
             if error.param.name == "member":
                 embed = CustomEmbed(types = "missing").c()
                 await ctx.send(embed = embed)
+
+        if isinstance(error, commands.BotMissingPermissions):
+            embed = discord.Embed(description = f"{constants.check} Parece que me hacen falta ciertos permisos. Asegurate que tenga {error.missing_perms}")
+            await self.report(ctx, error)
+
         else:
+            await self.report(ctx, error)
             raise error
 
+
+    async def report(self, ctx, error):
+        channel = self.bot.get_channel(768253649838407680)
+        embed = discord.Embed(
+            title = "Unexpected Error",
+            description = f"```py\n{error}```",
+            color = constants.red
+        )
+        embed.add_field(name = "Guild", value = f"{ctx.guild}\n{ctx.guild.id}")
+        embed.add_field(name = "Comando", value = f"{ctx.command.name}")
+        await channel.send(embed = embed)
 
 def setup(bot):
     bot.add_cog(ErrorHandler(bot))

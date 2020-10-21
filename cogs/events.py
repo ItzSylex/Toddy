@@ -78,7 +78,7 @@ class Events(commands.Cog):
         mute_role = discord.utils.get(channel.guild.roles, name = "Silenciado ❌")
 
         if not mute_role:
-            await channel.guild.create_role(name = 'Silenciado ❌', color = discord.Colour(0x666666))
+            mute_role = await channel.guild.create_role(name = 'Silenciado ❌', color = discord.Colour(0x666666))
 
             for channel in channel.guild.channels:
                 overwrites = channel.overwrites

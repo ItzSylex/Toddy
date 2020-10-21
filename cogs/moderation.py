@@ -292,7 +292,7 @@ class Moderacion(commands.Cog):
 
     @commands.command(
         brief = "Silencia a un usario por un plazo de tiempo",
-        usage = f"{config.prefix} tempmute 1d 2h 3m",
+        usage = f"{config.prefix}tempmute {constants.name} 1d 2h 3m",
         aliases = ["tm", "tempm"]
     )
     @commands.check_any(
@@ -332,7 +332,7 @@ class Moderacion(commands.Cog):
 
     @commands.command(
         brief = "Banea a un usario por un plazo de tiempo",
-        usage = f"{config.prefix} tempban 1d 2h 3m",
+        usage = f"{config.prefix}tempban {constants.name} 1d 2h 3m",
         aliases = ["tb", "tempb"]
     )
     @commands.check_any(
