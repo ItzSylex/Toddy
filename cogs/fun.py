@@ -80,12 +80,12 @@ class Varios(commands.Cog):
 
         embed = discord.Embed(
             title = f"Avatar de {member}",
-            url = member.avatar_url,
+            url = str(member.avatar_url),
             timestamp = datetime.utcnow(),
             color = constants.blue
         )
         embed.set_footer(text = f"Pedido por {ctx.message.author}")
-        embed.set_image(url = member.avatar_url)
+        embed.set_image(url = str(member.avatar_url))
         await ctx.send(embed = embed)
 
     @commands.command(
@@ -174,7 +174,7 @@ class Varios(commands.Cog):
             )
             embed.set_author(name = str(message.author), icon_url = message.author.avatar_url)
             del self.bot.snipe[ctx.channel.id]
-            await ctx.send(embed = embed)
+            return await ctx.send(embed = embed)
         if option.lower() == "edit":
             try:
                 list_message = self.bot.snipe_edit[ctx.channel.id]
