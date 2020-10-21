@@ -114,7 +114,6 @@ class Economia(commands.Cog):
 
         else:
             for each in converted_inventory:
-                print(type(each))
                 if item['name'] in each.keys():
 
                     detalles = each[item["name"]]
