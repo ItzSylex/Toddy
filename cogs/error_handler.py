@@ -49,6 +49,7 @@ class ErrorHandler(commands.Cog):
                     duration = invoked.count("h") * 2
 
                     await ctx.invoke(shh_command, duration if duration <= 15 else 15)
+                    return
                 else:
                     embed = discord.Embed(
                         description = f"{constants.x} No tienes los roles necesarios para usar este comando.",
@@ -57,8 +58,6 @@ class ErrorHandler(commands.Cog):
                     await ctx.send(embed = embed)
             else:
                 return
-
-        await self.report(ctx, error)
 
         if isinstance(error, commands.MissingRequiredArgument):
             if error.param.name == "member":

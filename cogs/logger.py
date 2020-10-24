@@ -12,16 +12,18 @@ class Logger(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_completion(self, ctx):
-        if ctx.guild.id == 756383841467236364:
-            return
+        if ctx.command is not None:
 
-        channel = self.bot.get_channel(768260081657577482)
+            if ctx.guild.id == 756383841467236364:
+                return
 
-        embed = discord.Embed(
-            description = f"{constants.check} Completed command **{ctx.command.name}** in **{ctx.guild.name}** by **{ctx.author}**",
-            color = constants.green
-        )
-        await channel.send(embed = embed)
+            channel = self.bot.get_channel(768260081657577482)
+
+            embed = discord.Embed(
+                description = f"{constants.check} Completed command **{ctx.command.name}** in **{ctx.guild.name}** by **{ctx.author}**",
+                color = constants.green
+            )
+            await channel.send(embed = embed)
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
