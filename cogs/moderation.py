@@ -25,18 +25,13 @@ def is_mod():
             return False
 
         else:
-            print("dentro else")
             if ctx.author.id == ctx.guild.owner.id:
-                print("dentro owner")
                 return True
 
             if ctx.author.guild_permissions.administrator:
-                print("dentro admin")
                 return True
 
             roles = [r.id for r in ctx.author.roles]
-
-            print(roles)
 
             sql = """SELECT mod_roles FROM guilds WHERE guild_id = ?"""
             data_tuple = (ctx.guild.id,)
@@ -44,10 +39,7 @@ def is_mod():
             data = await cursor.fetchone()
             role_config = ast.literal_eval(data[0])
 
-            print(role_config)
-
             if any(role in roles for role in role_config):
-                print("dentro any")
                 return True
 
             raise NoRequiredRole()
