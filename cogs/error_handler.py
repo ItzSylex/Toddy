@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import constants
 import config
+import ast
 
 
 from utils.resources.custom_embed import CustomEmbed
@@ -19,7 +20,7 @@ class ErrorHandler(commands.Cog):
         if hasattr(ctx.command, 'on_error'):
             return
 
-        skip = (commands.BadArgument, commands.CommandOnCooldown)
+        skip = (commands.BadArgument, commands.CommandOnCooldown, commands.DisabledCommand, commands.CheckFailure)
 
         error = getattr(error, 'original', error)
 
@@ -32,12 +33,32 @@ class ErrorHandler(commands.Cog):
                 for char in invoked[1:]:
                     if char.lower() != "h":
                         return
-                shh_command = self.bot.get_command("hush")
-                self.bot.eh_invoked = True
 
-                duration = invoked.count("h") * 2
+                sql = """SELECT mod_roles FROM guilds WHERE guild_id = ?"""
+                data_tuple = (ctx.guild.id,)
+                cursor = await ctx.bot.db.execute(sql, data_tuple)
+                data = await cursor.fetchone()
+                role_config = ast.literal_eval(data[0])
+                roles = [r.id for r in ctx.author.roles]
 
-                await ctx.invoke(shh_command, duration if duration <= 15 else 15)
+                if any(role in roles for role in role_config):
+
+                    shh_command = self.bot.get_command("hush")
+                    self.bot.eh_invoked = True
+
+                    duration = invoked.count("h") * 2
+
+                    await ctx.invoke(shh_command, duration if duration <= 15 else 15)
+                else:
+                    embed = discord.Embed(
+                        description = f"{constants.x} No tienes los roles necesarios para usar este comando.",
+                        color = constants.red
+                    )
+                    await ctx.send(embed = embed)
+            else:
+                return
+
+        await self.report(ctx, error)
 
         if isinstance(error, commands.MissingRequiredArgument):
             if error.param.name == "member":
@@ -45,11 +66,14 @@ class ErrorHandler(commands.Cog):
                 await ctx.send(embed = embed)
 
         if isinstance(error, commands.BotMissingPermissions):
-            embed = discord.Embed(description = f"{constants.check} Parece que me hacen falta ciertos permisos. Asegurate que tenga {error.missing_perms}")
-            await self.report(ctx, error)
+            embed = discord.Embed(description = f"{constants.x} Parece que me hacen falta ciertos permisos. Asegurate que tenga {error.missing_perms}")
+            await ctx.send(embed = embed)
+
+        if isinstance(error, commands.MissingPermissions):
+            embed = discord.Embed(description = f"{constants.x} No tienes los permisos necesarios para usar este comando.")
+            await ctx.send(embed = embed)
 
         else:
-            await self.report(ctx, error)
             raise error
 
 
@@ -62,6 +86,7 @@ class ErrorHandler(commands.Cog):
         )
         embed.add_field(name = "Guild", value = f"{ctx.guild}\n{ctx.guild.id}")
         embed.add_field(name = "Comando", value = f"{ctx.command.name}")
+        embed.add_field(name = "Usuario", value = f"{ctx.author}")
         await channel.send(embed = embed)
 
 def setup(bot):
