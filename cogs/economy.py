@@ -380,12 +380,6 @@ class Economia(commands.Cog):
             await self.bot.db.execute(query, data_tuple)
             await self.bot.db.commit()
 
-    @commands.command(hidden = True)
-    @commands.is_owner()
-    async def insert_economic(self, ctx):
-        for member in ctx.guild.members:
-            await self.if_not_insert(member)
-
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
             if ctx.author.id == 252962157002489857:
