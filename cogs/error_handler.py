@@ -41,7 +41,7 @@ class ErrorHandler(commands.Cog):
                 role_config = ast.literal_eval(data[0])
                 roles = [r.id for r in ctx.author.roles]
 
-                if any(role in roles for role in role_config):
+                if any(role in roles for role in role_config) or ctx.author.guild_permissions.administrator:
 
                     shh_command = self.bot.get_command("hush")
                     self.bot.eh_invoked = True
