@@ -32,7 +32,13 @@ class Events(commands.Cog):
                         guild_id, user_id, mute, warns, guild_name
                     ) VALUES (?, ?, ?, ?, ?)""", (guild.id, member.id, 0, 0, guild.name)
                 )
+        await self.bot.db.execute(
+            """INSERT INTO guilds(
+                mod_roles, guild_id
+            ) VALUES (?, ?)""", ("[]", guild.id)
+        )
         await self.bot.db.commit()
+
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
