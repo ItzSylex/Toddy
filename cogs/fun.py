@@ -137,7 +137,7 @@ class Varios(commands.Cog):
             ),
             (
                 "Informacion de Server",
-                f"Se unio en: {joined_at}\nTop Rol: {top_role}\nRoles:\n{roles}",
+                f"Se unio en: {joined_at}\nTop Rol: {top_role}",
                 False
             ),
             (
