@@ -122,8 +122,8 @@ class Configuracion(commands.Cog):
                 description = description + f"ID: **{role_obj.id}** ► {role_obj.mention}\n"
 
         embed = discord.Embed(
-            title = "Roles con permisos.",
-            description = description,
+            title = "Roles con permisos:",
+            description = description if len(description) != 0 else "Aun no hay roles que pueden usar comandos de mod. Usa el comando `arol` para agregar roles.",
             color = constants.blue
         )
         await ctx.send(embed = embed)
