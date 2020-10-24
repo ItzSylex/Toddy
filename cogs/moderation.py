@@ -9,15 +9,64 @@ from utils.database import Database
 
 import asyncio
 import datetime
-
+import ast
 from utils.resources.custom_embed import CustomEmbed
 
+
+class NoRequiredRole(commands.DisabledCommand):
+    def __init__(self):
+        pass
+
+
+def is_mod():
+    async def predicate(ctx):
+
+        if not ctx.guild:
+            return False
+
+        else:
+            print("dentro else")
+            if ctx.author.id == ctx.guild.owner.id:
+                print("dentro owner")
+                return True
+
+            if ctx.author.guild_permissions.administrator:
+                print("dentro admin")
+                return True
+
+            roles = [r.id for r in ctx.author.roles]
+
+            print(roles)
+
+            sql = """SELECT mod_roles FROM guilds WHERE guild_id = ?"""
+            data_tuple = (ctx.guild.id,)
+            cursor = await ctx.bot.db.execute(sql, data_tuple)
+            data = await cursor.fetchone()
+            role_config = ast.literal_eval(data[0])
+
+            print(role_config)
+
+            if any(role in roles for role in role_config):
+                print("dentro any")
+                return True
+
+            raise NoRequiredRole()
+
+    return commands.check(predicate)
 
 class Moderacion(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
         self.seconds = {"m": 60, "h": 3600, "d": 86400}
+
+    async def cog_command_error(self, ctx, error):
+        if isinstance(error, NoRequiredRole):
+            embed = discord.Embed(
+                description = f"{constants.x} No tienes los roles necesarios para usar este comando.",
+                color = constants.red
+            )
+            await ctx.send(embed = embed)
 
     def convert_seconds(self, time):
         total = 0
@@ -76,10 +125,7 @@ class Moderacion(commands.Cog):
         usage = f"{config.prefix}mute {constants.name}",
         aliases = ["m"]
     )
-    @commands.check_any(
-        commands.has_guild_permissions(administrator = True),
-        commands.has_guild_permissions(manage_roles = True)
-    )
+    @is_mod()
     async def mute(self, ctx, member: discord.Member):
 
         mute_role = discord.utils.get(ctx.guild.roles, name = "Silenciado ❌")
@@ -113,10 +159,7 @@ class Moderacion(commands.Cog):
         name = "unmute", usage = f"{config.prefix}unmute {constants.name}",
         aliases = ["um"]
     )
-    @commands.check_any(
-        commands.has_guild_permissions(administrator = True),
-        commands.has_guild_permissions(manage_roles = True)
-    )
+    @is_mod()
     async def unmute(self, ctx, member: typing.Union[discord.Member, discord.Object]):
 
         embed = CustomEmbed(types = "unmute", target = member).c()
@@ -146,10 +189,7 @@ class Moderacion(commands.Cog):
         usage = f"{config.prefix}ban {constants.name}",
         aliases = ["b"]
     )
-    @commands.check_any(
-        commands.has_permissions(administrator = True),
-        commands.has_permissions(ban_members = True)
-    )
+    @is_mod()
     async def ban(self, ctx, member: typing.Union[discord.Member, discord.Object]):
 
         if self.same_level(ctx.author, member):
@@ -165,10 +205,7 @@ class Moderacion(commands.Cog):
         usage = f"{config.prefix}kick {constants.name}",
         aliases = ["k"]
     )
-    @commands.check_any(
-        commands.has_permissions(administrator = True),
-        commands.has_permissions(kick_members = True)
-    )
+    @is_mod()
     async def kick(self, ctx, member: discord.Member):
         if self.same_level(ctx.author, member):
             embed = CustomEmbed(types = "error").c()
@@ -184,10 +221,7 @@ class Moderacion(commands.Cog):
         aliases = [],
         name = "hush"
     )
-    @commands.check_any(
-        commands.has_permissions(administrator = True),
-        commands.has_permissions(manage_channels = True)
-    )
+    @is_mod()
     @commands.cooldown(rate = 1, per = 240, type = commands.BucketType.channel)
     async def silence(self, ctx, duration: int):
         if self.bot.eh_invoked is False:
@@ -223,10 +257,7 @@ class Moderacion(commands.Cog):
         aliases = ["unsilence"],
         name = "unshh"
     )
-    @commands.check_any(
-        commands.has_permissions(administrator = True),
-        commands.has_permissions(manage_channels = True)
-    )
+    @is_mod()
     async def _unsilence(self, ctx):
         loop = self.bot.get_cog("Loops")
         await loop.unmute_channel(ctx.channel.id, ctx.guild.id)
@@ -236,10 +267,7 @@ class Moderacion(commands.Cog):
         usage = f"{config.prefix}warn {constants.name} [razon opcional]",
         aliases = ["w"]
     )
-    @commands.check_any(
-        commands.has_permissions(administrator = True),
-        commands.has_permissions(ban_members = True)
-    )
+    @is_mod()
     async def warn(self, ctx, member: discord.Member, *, reason = None):
 
         if self.same_level(ctx.author, member):
@@ -264,10 +292,7 @@ class Moderacion(commands.Cog):
         usage = f"{config.prefix}unwarn {constants.name}",
         aliases = ["uw"]
     )
-    @commands.check_any(
-        commands.has_permissions(administrator = True),
-        commands.has_permissions(ban_members = True)
-    )
+    @is_mod()
     async def unwarn(self, ctx, member: discord.Member):
 
         embed = CustomEmbed(types = "error").c()
@@ -293,10 +318,7 @@ class Moderacion(commands.Cog):
         usage = f"{config.prefix}tempmute {constants.name} 1d 2h 3m",
         aliases = ["tm", "tempm"]
     )
-    @commands.check_any(
-        commands.has_guild_permissions(administrator = True),
-        commands.has_guild_permissions(manage_roles = True)
-    )
+    @is_mod()
     async def tempmute(self, ctx, member: discord.Member, *duration):
         if self.same_level(ctx.author, member):
             embed = CustomEmbed(types = "error").c()
@@ -354,10 +376,7 @@ class Moderacion(commands.Cog):
         usage = f"{config.prefix}tempban {constants.name} 1d 2h 3m",
         aliases = ["tb", "tempb"]
     )
-    @commands.check_any(
-        commands.has_guild_permissions(administrator = True),
-        commands.has_guild_permissions(ban_members = True)
-    )
+    @is_mod()
     async def tempban(self, ctx, member: discord.Member, *duration):
         if self.same_level(ctx.author, member):
             embed = CustomEmbed(types = "error").c()
