@@ -83,5 +83,58 @@ class Owner(commands.Cog):
             await ctx.message.add_reaction(f"{constants.check}")
 
 
+    async def if_not_insert(self, member):
+
+        sql = """SELECT * FROM economy WHERE user_id = ?"""
+
+        data = (member.id,)
+
+        cursor = await self.bot.db.execute(sql, data)
+
+        data = await cursor.fetchall()
+
+        if len(data) == 0:
+            query = """INSERT INTO economy(
+                user_id, bank, wallet, inventory, pet, pet_name, pet_type, last_time_fed
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
+            data_tuple = (member.id, 0, 0, "[]", 0, None, None, None)
+
+            await self.bot.db.execute(query, data_tuple)
+            await self.bot.db.commit()
+
+    @commands.command(hidden = True)
+    async def insert_economy(self, ctx):
+        for guild in self.bot.guilds:
+            for member in guild.members:
+                await self.if_not_insert(member)
+
+        await ctx.message.add_reaction(f"{constants.check}")
+
+    @commands.command()
+    async def insert_guilds(self, ctx):
+        for guild in self.bot.guilds:
+            await self.add_guild(guild)
+
+        await ctx.message.add_reaction(f"{constants.check}")
+
+    async def add_guild(self, guild):
+        sql = """SELECT * FROM guilds WHERE guild_id = ?"""
+
+        data = (guild.id,)
+
+        cursor = await self.bot.db.execute(sql, data)
+
+        data = await cursor.fetchall()
+
+        if len(data) == 0:
+            await self.bot.db.execute(
+                """INSERT INTO guilds(
+                    mod_roles, guild_id
+                ) VALUES (?, ?)""", ("[]", guild.id)
+            )
+            await self.bot.db.commit()
+
+
+
 def setup(bot):
     bot.add_cog(Owner(bot))
