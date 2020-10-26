@@ -353,6 +353,11 @@ class Moderacion(commands.Cog):
 
             await member.add_roles(mute_role)
 
+            await self.bot.db.execute(
+                """UPDATE users SET mute = 1 WHERE guild_id = ? AND user_id = ?""", (ctx.guild.id, member.id)
+            )
+            await self.bot.db.commit()
+
             embed = CustomEmbed(types = "tempmute", target = member).c()
             return await ctx.send(embed = embed)
         else:
