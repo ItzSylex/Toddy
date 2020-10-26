@@ -17,7 +17,6 @@ class Loops(commands.Cog):
 
         self.bot.loop.create_task(self.cache_values())
 
-        self.temp_infractions.start()
         self.should_unumte.start()
 
         self.current_mutes = {}
@@ -74,10 +73,6 @@ class Loops(commands.Cog):
                 if d.now() >= remove_time:
                     await self.remove_infraction(user_id, guild_id, details_inf[2])
 
-    @tasks.loop(seconds = 1)
-    async def temp_infractions(self):
-        await self.bot.wait_until_ready()
-
     async def unmute_channel(self, channel_id: int, guild_id: int):
         """
         Removes channel from cache,
@@ -114,21 +109,26 @@ class Loops(commands.Cog):
         query = """DELETE FROM infractions WHERE user_id = ? AND guild_id = ?"""
         data_tuple = (user_id, guild_id)
 
+        await self.bot.db.execute(
+            """UPDATE users SET mute = 0 WHERE guild_id = ? AND user_id = ?""", (guild_id, user_id)
+        )
         await self.bot.db.execute(query, data_tuple)
         await self.bot.db.commit()
 
-        if inf_type == "ban":
-            await guild.unban(discord.Object(id = user_id))
+        if user is not None:
 
-        if inf_type == "mute":
-            embed = discord.Embed(description = f"{constants.check} Tu silencio en {guild.name} ha **terminado**.")
-            try:
-                await user.send(embed = embed)
-            except Exception:
-                pass
-            finally:
-                role = discord.utils.get(guild.roles, name = "Silenciado ❌")
-                await user.remove_roles(role)
+            if inf_type == "ban":
+                await guild.unban(discord.Object(id = user_id))
+
+            if inf_type == "mute":
+                embed = discord.Embed(description = f"{constants.check} Tu silencio en {guild.name} ha **terminado**.")
+                try:
+                    await user.send(embed = embed)
+                except Exception:
+                    pass
+                finally:
+                    role = discord.utils.get(guild.roles, name = "Silenciado ❌")
+                    await user.remove_roles(role)
 
 
 def setup(bot):
