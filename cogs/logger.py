@@ -16,7 +16,7 @@ class Logger(commands.Cog):
 
             cog = ctx.command.cog.qualified_name
 
-            if ctx.guild.id == 75638384146723636:
+            if ctx.guild.id == 756383841467236364:
                 return
 
             channel = self.bot.get_channel(768260081657577482)
