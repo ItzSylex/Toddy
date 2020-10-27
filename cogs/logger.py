@@ -30,6 +30,10 @@ class Logger(commands.Cog):
                 embed.color = constants.red
             if cog == "Varios":
                 embed.color = constants.yellow
+            if cog == "Configuracion":
+                embed.color = 0xe4592a
+            if cog == "Economia":
+                embed.color = 0x9a2ae4
 
             await channel.send(embed = embed)
 
