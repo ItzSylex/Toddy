@@ -67,9 +67,10 @@ class Configuracion(commands.Cog):
 
         else:
             embed = discord.Embed(
-                description = f"{constants.x} Pon el ID o menciona el rol que quieras agregar a la lista de roles de mod.",
+                description = f"{constants.x} Pon el ID o la mencion el rol que quieras agregar a la lista de roles de mod.",
                 color = constants.red
             )
+            await ctx.send(embed = embed)
 
     @commands.command(
         brief = "Quita un rol de la lista de roles que pueden usar los comandos de mod / admin",
