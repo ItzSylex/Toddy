@@ -14,7 +14,9 @@ class Logger(commands.Cog):
     async def on_command_completion(self, ctx):
         if ctx.command is not None:
 
-            if ctx.guild.id == 756383841467236364:
+            cog = ctx.command.cog.qualified_name
+
+            if ctx.guild.id == 75638384146723636:
                 return
 
             channel = self.bot.get_channel(768260081657577482)
@@ -23,6 +25,12 @@ class Logger(commands.Cog):
                 description = f"{constants.check} Completed command **{ctx.command.name}** in **{ctx.guild.name}** by **{ctx.author}**",
                 color = constants.green
             )
+
+            if cog == "Moderacion":
+                embed.color = constants.red
+            if cog == "Varios":
+                embed.color = constants.yellow
+
             await channel.send(embed = embed)
 
     @commands.Cog.listener()
