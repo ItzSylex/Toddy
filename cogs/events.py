@@ -115,6 +115,15 @@ class Events(commands.Cog):
         if not after.embeds and not before.embeds:
             self.bot.snipe_edit[before.channel.id] = [before, after]
 
+    @commands.Cog.listener()
+    async def on_member_unban(self, guild, user):
+        if await self.dab.exists_db(user, guild):
+            if await self.dab.is_max(user, guild):
+                query = """UPDATE users SET warns = 0 WHERE user_id = ? AND guild_id = ?"""
+                data_tuple = (user.id, guild.id)
+
+                await self.bot.db.execute(query, data_tuple)
+                await self.bot.db.commit()
 
 def setup(bot):
     bot.add_cog(Events(bot))
