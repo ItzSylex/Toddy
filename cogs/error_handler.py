@@ -20,7 +20,7 @@ class ErrorHandler(commands.Cog):
         if hasattr(ctx.command, 'on_error'):
             return
 
-        skip = (commands.BadArgument, commands.CommandOnCooldown, commands.DisabledCommand, commands.CheckFailure)
+        skip = (commands.BadArgument, commands.CommandOnCooldown, commands.DisabledCommand)
 
         error = getattr(error, 'original', error)
 
@@ -65,16 +65,21 @@ class ErrorHandler(commands.Cog):
                 await ctx.send(embed = embed)
 
         if isinstance(error, commands.BotMissingPermissions):
-            embed = discord.Embed(description = f"{constants.x} Parece que me hacen falta ciertos permisos. Asegurate que tenga {error.missing_perms}")
+            embed = discord.Embed(
+                description = f"{constants.x} Parece que me hacen falta ciertos permisos. Asegurate que tenga {error.missing_perms}",
+                color = constants.red
+            )
             await ctx.send(embed = embed)
 
         if isinstance(error, commands.MissingPermissions):
-            embed = discord.Embed(description = f"{constants.x} No tienes los permisos necesarios para usar este comando.")
+            embed = discord.Embed(
+                description = f"{constants.x} No tienes los permisos necesarios para usar este comando.",
+                color = constants.red
+                )
             await ctx.send(embed = embed)
 
         else:
             raise error
-
 
     async def report(self, ctx, error):
         channel = self.bot.get_channel(768253649838407680)
