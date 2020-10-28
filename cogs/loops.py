@@ -78,27 +78,31 @@ class Loops(commands.Cog):
         Removes channel from cache,
         changes permissions to speak and updates database
         """
-
-        del self.current_mutes[channel_id]
-
-        query = """DELETE FROM c_mutes WHERE channel_id = ?"""
-
-        data_tuple = (channel_id,)
-
-        await self.bot.db.execute(query, data_tuple)
-        await self.bot.db.commit()
-
         channel = self.bot.get_channel(channel_id)
-        overwrites = channel.overwrites
+        try:
+            del self.current_mutes[channel_id]
 
-        perm = channel.overwrites_for(channel.guild.default_role)
-        perm.send_messages = True
-        overwrites[channel.guild.default_role] = perm
+            query = """DELETE FROM c_mutes WHERE channel_id = ?"""
 
-        await channel.edit(overwrites = overwrites)
+            data_tuple = (channel_id,)
 
-        embed = discord.Embed(description = f"{constants.check} {constants.unmute} Este canal ya no esta silenciado.", color = constants.green)
-        await channel.send(embed = embed)
+            await self.bot.db.execute(query, data_tuple)
+            await self.bot.db.commit()
+        except KeyError:
+            embed = discord.Embed(description = f"{constants.x} Este canal no estaba silenciado antes.", color = constants.red)
+            await channel.send(embed = embed)
+            return
+        else:
+            overwrites = channel.overwrites
+
+            perm = channel.overwrites_for(channel.guild.default_role)
+            perm.send_messages = True
+            overwrites[channel.guild.default_role] = perm
+
+            await channel.edit(overwrites = overwrites)
+
+            embed = discord.Embed(description = f"{constants.check} {constants.unmute} Este canal ya no esta silenciado.", color = constants.green)
+            await channel.send(embed = embed)
 
     async def remove_infraction(self, user_id: int, guild_id: int, inf_type: str):
         guild = self.bot.get_guild(guild_id)
