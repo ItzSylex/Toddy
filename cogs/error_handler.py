@@ -83,7 +83,7 @@ class ErrorHandler(commands.Cog):
             embed = discord.Embed(
                 description = f"{constants.x} No tienes los permisos necesarios para usar este comando.",
                 color = constants.red
-                )
+            )
             await ctx.send(embed = embed)
 
         else:
