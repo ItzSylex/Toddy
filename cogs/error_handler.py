@@ -3,6 +3,7 @@ from discord.ext import commands
 import constants
 import config
 import ast
+from utils.resources import custom_errors
 
 
 from utils.resources.custom_embed import CustomEmbed
@@ -20,12 +21,19 @@ class ErrorHandler(commands.Cog):
         if hasattr(ctx.command, 'on_error'):
             return
 
-        skip = (commands.BadArgument, commands.CommandOnCooldown, commands.DisabledCommand)
+        skip = (commands.BadArgument, commands.CommandOnCooldown)
 
         error = getattr(error, 'original', error)
 
         if isinstance(error, skip):
             return
+
+        if isinstance(error, custom_errors.NoRequiredRole):
+            embed = discord.Embed(
+                description = f"{constants.x} No tienes los roles necesarios para usar este comando.",
+                color = constants.red
+            )
+            return await ctx.send(embed = embed)
 
         if isinstance(error, commands.CommandNotFound):
             invoked = ctx.invoked_with
@@ -55,7 +63,7 @@ class ErrorHandler(commands.Cog):
                         description = f"{constants.x} No tienes los roles necesarios para usar este comando.",
                         color = constants.red
                     )
-                    await ctx.send(embed = embed)
+                    return await ctx.send(embed = embed)
             else:
                 return
 

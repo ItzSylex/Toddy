@@ -14,7 +14,7 @@ class Database(commands.Cog):
         """Makes database connection to users data base"""
         self.bot.db = await aiosqlite.connect('database.db')
 
-    async def exists_db(self, member: discord.Member, guild: discord.Guild) -> bool:
+    async def exists_db(self, member, guild: discord.Guild) -> bool:
         """Checks if the user is in the database"""
         if hasattr(member, 'id') and hasattr(guild, "id"):
             cursor = await self.bot.db.execute(
@@ -47,7 +47,7 @@ class Database(commands.Cog):
                 return True
         return False
 
-    async def is_max(self, member: discord.Member, guild: discord.Guild) -> bool:
+    async def is_max(self, member, guild: discord.Guild) -> bool:
         """Checks if active warns is 3"""
         if hasattr(member, 'id'):
             cursor = await self.bot.db.execute(
