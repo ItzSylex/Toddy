@@ -8,7 +8,6 @@ import config
 from datetime import datetime
 
 
-
 class Varios(commands.Cog):
 
     """Comandos varios"""

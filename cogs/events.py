@@ -39,7 +39,6 @@ class Events(commands.Cog):
         )
         await self.bot.db.commit()
 
-
     @commands.Cog.listener()
     async def on_member_join(self, member):
         """
@@ -124,6 +123,7 @@ class Events(commands.Cog):
 
                 await self.bot.db.execute(query, data_tuple)
                 await self.bot.db.commit()
+
 
 def setup(bot):
     bot.add_cog(Events(bot))

@@ -82,7 +82,6 @@ class Owner(commands.Cog):
             await self.bot.db.commit()
             await ctx.message.add_reaction(f"{constants.check}")
 
-
     async def if_not_insert(self, member):
 
         sql = """SELECT * FROM economy WHERE user_id = ?"""
@@ -133,7 +132,6 @@ class Owner(commands.Cog):
                 ) VALUES (?, ?)""", ("[]", guild.id)
             )
             await self.bot.db.commit()
-
 
 
 def setup(bot):

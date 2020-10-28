@@ -10,8 +10,8 @@ import random
 import datetime
 
 
-## TODO: Falta por terminar el comando de comprar, testear que la resta del dinero se haga bien con todos los casos
-## esto es, cuando tiene dinero suficiente solo en la wallet y cuando no, en este caso necesita del banco.
+# TODO: Falta por terminar el comando de comprar, testear que la resta del dinero se haga bien con todos los casos
+# esto es, cuando tiene dinero suficiente solo en la wallet y cuando no, en este caso necesita del banco.
 # La wallet deberia de quedar en 0 y el banco con el remaining.
 
 class Economia(commands.Cog):
@@ -53,7 +53,6 @@ class Economia(commands.Cog):
         if tipo == "update":
             sql = """UPDATE economy SET wallet = ?, bank = ? WHERE user_id = ?"""
             data_tuple = (amount[0], amount[1], member.id)
-
 
         await self.bot.db.execute(sql, data_tuple)
         await self.bot.db.commit()
@@ -109,7 +108,7 @@ class Economia(commands.Cog):
         converted_inventory = ast.literal_eval(inventory)
 
         if not converted_inventory:
-            to_add = [{item['name'] : [1, item['emoji'], item['description']]}]
+            to_add = [{item['name']: [1, item['emoji'], item['description']]}]
             data_tuple = (str(to_add), member.id)
 
         else:
@@ -123,7 +122,7 @@ class Economia(commands.Cog):
                 else:
 
                     count = 1
-                    to_add = {item['name'] : [count, item['emoji'], item['description']]}
+                    to_add = {item['name']: [count, item['emoji'], item['description']]}
 
                     converted_inventory.append(to_add)
 
@@ -133,7 +132,6 @@ class Economia(commands.Cog):
 
         await self.bot.db.execute(sql, data_tuple)
         await self.bot.db.commit()
-
 
     @commands.command(
         brief = "Deposita tus quacks al banco",
@@ -350,8 +348,6 @@ class Economia(commands.Cog):
         embed.description = f"{constants.x} Parece que este item no esta en la tienda. Asegurate de escribirlo **igual** a como sale en la tienda."
         return await ctx.send(embed = embed)
 
-
-
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         for member in guild.members:
@@ -399,7 +395,7 @@ class Economia(commands.Cog):
                     description = f"{constants.x} Especifica el item, asegurate de escribirlo tal y como aparece en la tienda o en tu inventario.",
                     color = constants.red
                 )
-                await ctx.send(embed =  embed)
+                await ctx.send(embed = embed)
         else:
             raise error
 
