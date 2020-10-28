@@ -101,5 +101,6 @@ class ErrorHandler(commands.Cog):
         embed.add_field(name = "Usuario", value = f"{ctx.author}")
         await channel.send(embed = embed)
 
+
 def setup(bot):
     bot.add_cog(ErrorHandler(bot))
