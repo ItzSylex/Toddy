@@ -105,31 +105,25 @@ class Economia(commands.Cog):
 
     async def add_item(self, member, item):
         inventory = await self.get_inventory(member)
-        converted_inventory = ast.literal_eval(inventory)
+        converted = ast.literal_eval(inventory)
 
-        if not converted_inventory:
-            to_add = [{item['name']: [1, item['emoji'], item['description']]}]
-            data_tuple = (str(to_add), member.id)
-
+        if not converted:
+            new_inventory = [{item["id"]: 1}]
+            await self.update_inventory(str(new_inventory), member.id)
         else:
-            for each in converted_inventory:
-                if item['name'] in each.keys():
+            for each in converted:
+                if item["id"] in each.keys():
+                    each.update({item["id"]: each[item["id"]] + 1})
 
-                    detalles = each[item["name"]]
-                    detalles[0] = detalles[0] + 1
-                    data_tuple = (str(converted_inventory), member.id)
+                    await self.update_inventory(str(converted), member.id)
+                    return
 
-                else:
+            converted.append({item["id"]: 1})
+            await self.update_inventory(str(converted), member.id)
 
-                    count = 1
-                    to_add = {item['name']: [count, item['emoji'], item['description']]}
-
-                    converted_inventory.append(to_add)
-
-                    data_tuple = (str(converted_inventory), member.id)
-
+    async def update_inventory(self, converted_inventory, member_id):
+        data_tuple = (str(converted_inventory), member_id)
         sql = """UPDATE economy SET inventory = ? WHERE user_id = ?"""
-
         await self.bot.db.execute(sql, data_tuple)
         await self.bot.db.commit()
 
@@ -263,14 +257,17 @@ class Economia(commands.Cog):
             color = constants.blue
         )
         inventory = await self.get_inventory(ctx.author)
-        converted_inventory = ast.literal_eval(inventory)
+        converted = ast.literal_eval(inventory)
 
-        format_string = ""
+        string = ""
 
-        for item in converted_inventory:
-            format_string = format_string + f"{item['emoji']} **{item['name']}:** ► {item['description']}"
+        for each in converted:
+            for id, count in each.items():
+                for item in econstants.shop:
+                    if id in item.values():
+                        string = string + f"{item['emoji']} **{item['name']}.** x{count}\n"
 
-        embed.description = "Parece que no hay nada" if len(format_string) == 0 else format_string
+        embed.description = "Parece que no hay nada" if len(string) == 0 else string
         await ctx.send(embed = embed)
 
     @commands.command(
