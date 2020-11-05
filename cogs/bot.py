@@ -88,6 +88,28 @@ class Bot(commands.Cog):
         await ctx.send(embed = embed)
 
     @commands.command(
+        brief = "Muestra la invitacion del bot",
+        usage = ";invite"
+    )
+    async def invite(self, ctx):
+        embed = discord.Embed(
+            description = f"{constants.check} Si quieres invitar a Toddy a tu servidor [clickea aca](https://discord.com/api/oauth2/authorize?client_id=756377891264135249&permissions=8&scope=bot).\nToddy necesita permisos de administrador para funcionar adecuadamente.",
+            color = constants.blue
+        )
+        await ctx.send(embed = embed)
+
+    @commands.command(
+        brief = "Invitacion al servidor de soporte",
+        usage = ";soporte"
+    )
+    async def soporte(self, ctx):
+        embed = discord.Embed(
+            description = f"{constants.suggestion} Si algo no funciona como deberia o si tienes problemas con algun comando, podes unirte a [este servidor](https://discord.gg/Vr24rVCSda).",
+            color = constants.blue
+        )
+        await ctx.send(embed = embed)
+
+    @commands.command(
         brief = "Dar sugerencias para el bot",
         usage = f"{config.prefix}sugerencia [mensaje]",
         aliases = ["suggest", "reporte"]
