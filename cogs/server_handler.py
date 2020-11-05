@@ -13,9 +13,9 @@ class ServerHandler(commands.Cog):
         if member.guild.id == 756383841467236364:
             embed = discord.Embed(
                 color = constants.blue,
-                description = f"Bienvenido {member.mention}!"
+                description = f"🎉 Bienvenido {member.mention}!",
+                timestamp = member.joined_at
             )
-            embed.set_thumbnail(url = member.avatar_url)
 
             channel = self.bot.get_channel(773744967872413696)
 
