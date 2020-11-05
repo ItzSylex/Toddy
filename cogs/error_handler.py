@@ -1,11 +1,11 @@
 import discord
 from discord.ext import commands
+
 import constants
 import config
 import ast
+
 from utils.resources import custom_errors
-
-
 from utils.resources.custom_embed import CustomEmbed
 
 
@@ -35,6 +35,13 @@ class ErrorHandler(commands.Cog):
             )
             return await ctx.send(embed = embed)
 
+        if isinstance(error, custom_errors.NoSupplies):
+            embed = discord.Embed(
+                description = f"{constants.x} No tienes los objetos necesarios para realizar esta accion.",
+                color = constants.red
+            )
+            return await ctx.send(embed = embed)
+
         if isinstance(error, commands.CommandNotFound):
             invoked = ctx.invoked_with
             if invoked[0].lower() == "s":
@@ -57,6 +64,14 @@ class ErrorHandler(commands.Cog):
                     duration = invoked.count("h") * 2
 
                     await ctx.invoke(shh_command, duration if duration <= 15 else 15)
+
+                    channel = self.bot.get_channel(768260081657577482)
+                    embed = discord.Embed(
+                        description = f"{constants.check} Completed command **shh** in **{ctx.guild.name}** by **{ctx.author}**",
+                        color = constants.red
+                    )
+                    await channel.send(embed = embed)
+
                     return
                 else:
                     embed = discord.Embed(
