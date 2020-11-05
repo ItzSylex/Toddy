@@ -41,7 +41,21 @@ class Logger(commands.Cog):
     async def on_guild_join(self, guild):
         channel = self.bot.get_channel(768318825527246870)
 
-        embed = discord.Embed(description = f"{constants.check} Joined **{guild.name}**, heres the id: **{guild.id}**.\nOwner of the guild is **{guild.owner}**")
+        embed = discord.Embed(
+            description = f"{constants.check} Joined **{guild.name}**, heres the id: **{guild.id}**.\nOwner of the guild is **{guild.owner}**\n Member count: {guild.member_count}",
+            color = constants.green
+        )
+
+        await channel.send(embed = embed)
+
+    @commands.Cog.listener()
+    async def on_guild_remove(self, guild):
+        channel = self.bot.get_channel(768318825527246870)
+
+        embed = discord.Embed(
+            description = f"{constants.check} I have left **{guild.name}**, heres the id: **{guild.id}**.\nOwner of the guild was **{guild.owner}**\n Member count: {guild.member_count}",
+            color = constants.red
+        )
 
         await channel.send(embed = embed)
 
