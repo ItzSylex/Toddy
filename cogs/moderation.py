@@ -9,7 +9,6 @@ import config
 from utils.database import Database
 from utils.resources.custom_embed import CustomEmbed
 from utils.resources.decos import is_mod
-from utils.resources.custom_errors import NoRequiredRole
 
 import asyncio
 import datetime
