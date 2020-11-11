@@ -55,23 +55,25 @@ class Loops(commands.Cog):
     @tasks.loop(seconds = 1)
     async def should_unumte(self):
         await self.bot.wait_until_ready()
+        try:
+            if hasattr(self, "current_mutes"):
 
-        if hasattr(self, "current_mutes"):
+                for channel_id, details in list(self.current_mutes.items()):
+                    guild_id = details[1]
+                    time_to_unmute = d.strptime(details[0], '%Y-%m-%d %H:%M:%S.%f')
 
-            for channel_id, details in list(self.current_mutes.items()):
-                guild_id = details[1]
-                time_to_unmute = d.strptime(details[0], '%Y-%m-%d %H:%M:%S.%f')
+                    if d.now() >= time_to_unmute:
+                        await self.unmute_channel(channel_id, guild_id)
 
-                if d.now() >= time_to_unmute:
-                    await self.unmute_channel(channel_id, guild_id)
+            if hasattr(self, "current_infractions"):
+                for user_id, details_inf in list(self.current_infractions.items()):
+                    guild_id = details_inf[0]
+                    remove_time = d.strptime(details_inf[1], '%Y-%m-%d %H:%M:%S.%f')
 
-        if hasattr(self, "current_infractions"):
-            for user_id, details_inf in list(self.current_infractions.items()):
-                guild_id = details_inf[0]
-                remove_time = d.strptime(details_inf[1], '%Y-%m-%d %H:%M:%S.%f')
-
-                if d.now() >= remove_time:
-                    await self.remove_infraction(user_id, guild_id, details_inf[2])
+                    if d.now() >= remove_time:
+                        await self.remove_infraction(user_id, guild_id, details_inf[2])
+        except Exception:
+            pass
 
     async def unmute_channel(self, channel_id: int, guild_id: int):
         """
@@ -108,17 +110,6 @@ class Loops(commands.Cog):
         guild = self.bot.get_guild(guild_id)
         user = guild.get_member(user_id)
 
-        del self.current_infractions[user_id]
-
-        query = """DELETE FROM infractions WHERE user_id = ? AND guild_id = ?"""
-        data_tuple = (user_id, guild_id)
-
-        await self.bot.db.execute(
-            """UPDATE users SET mute = 0 WHERE guild_id = ? AND user_id = ?""", (guild_id, user_id)
-        )
-        await self.bot.db.execute(query, data_tuple)
-        await self.bot.db.commit()
-
         if user is not None:
 
             if inf_type == "ban":
@@ -133,6 +124,16 @@ class Loops(commands.Cog):
                 finally:
                     role = discord.utils.get(guild.roles, name = "Silenciado ❌")
                     await user.remove_roles(role)
+                    del self.current_infractions[user_id]
+
+                    query = """DELETE FROM infractions WHERE user_id = ? AND guild_id = ?"""
+                    data_tuple = (user_id, guild_id)
+
+                    await self.bot.db.execute(
+                        """UPDATE users SET mute = 0 WHERE guild_id = ? AND user_id = ?""", (guild_id, user_id)
+                    )
+                    await self.bot.db.execute(query, data_tuple)
+                    await self.bot.db.commit()
 
 
 def setup(bot):
