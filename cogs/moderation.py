@@ -291,9 +291,6 @@ class Moderacion(commands.Cog):
             query = "INSERT INTO infractions(user_id, guild_id, time_up, type_inf) VALUES (?, ?, ?, ?)"
             data_tuple = (member.id, ctx.guild.id, str(when), "mute")
 
-            await self.bot.db.execute(query, data_tuple)
-            await self.bot.db.commit()
-
             current_infractions[member.id] = [ctx.guild.id, str(when), "mute"]
             setattr(loop_cog, "current_infractions", current_infractions)
 
@@ -311,6 +308,8 @@ class Moderacion(commands.Cog):
                         await channel.edit(overwrites = overwrites)
 
             await member.add_roles(mute_role)
+            await self.bot.db.execute(query, data_tuple)
+            await self.bot.db.commit()
 
             await self.bot.db.execute(
                 """UPDATE users SET mute = 1 WHERE guild_id = ? AND user_id = ?""", (ctx.guild.id, member.id)

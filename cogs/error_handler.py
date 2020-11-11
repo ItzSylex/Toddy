@@ -42,6 +42,23 @@ class ErrorHandler(commands.Cog):
             )
             return await ctx.send(embed = embed)
 
+        if isinstance(error, discord.Forbidden):
+            if ctx.command.name in ["tempmute", "mute", "unmute"]:
+                embed = discord.Embed(
+                    description = f"{constants.x} Algo ha salido mal. Asegurate que el rol Silenciado ❌, este por encima del rol mas alto de Toddy.",
+                    color = constants.red
+                )
+                chan = self.bot.get_channel(775941964930613278)
+                forb = discord.Embed(
+                    title = "Forbidden Error",
+                    color = constants.red
+                )
+                forb.add_field(name = "Guild", value = f"{ctx.guild}\n{ctx.guild.id}")
+                forb.add_field(name = "Comando", value = f"{ctx.command.name}")
+                forb.add_field(name = "Usuario", value = f"{ctx.author}")
+                await chan.send(embed = forb)
+                return await ctx.send(embed = embed)
+
         if isinstance(error, commands.CommandNotFound):
             invoked = ctx.invoked_with
             if invoked[0].lower() == "s":
@@ -102,6 +119,7 @@ class ErrorHandler(commands.Cog):
             await ctx.send(embed = embed)
 
         else:
+            await self.report(ctx, error)
             raise error
 
     async def report(self, ctx, error):
