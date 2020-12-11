@@ -22,7 +22,6 @@ class ErrorHandler(commands.Cog):
             return
 
         skip = (commands.BadArgument, commands.CommandOnCooldown)
-
         error = getattr(error, 'original', error)
 
         if isinstance(error, skip):
@@ -102,7 +101,7 @@ class ErrorHandler(commands.Cog):
         if isinstance(error, commands.MissingRequiredArgument):
             if error.param.name == "member":
                 embed = CustomEmbed(types = "missing").c()
-                await ctx.send(embed = embed)
+                return await ctx.send(embed = embed)
 
         if isinstance(error, commands.BotMissingPermissions):
             embed = discord.Embed(
