@@ -1,7 +1,16 @@
 import discord
 import ast
 from discord.ext import commands
-from utils.resources.custom_errors import NoRequiredRole
+from utils.resources.custom_errors import NoRequiredRole, NoSupplies
+
+
+"""
+11 muncion
+2 rifle
+
+12 cebo
+10 Caña
+"""
 
 
 def is_mod():
@@ -29,5 +38,24 @@ def is_mod():
                 return True
 
             raise NoRequiredRole()
+
+    return commands.check(predicate)
+
+
+def has_item(**items):
+    async def predicate(ctx):
+        sql = """SELECT inventory FROM economy WHERE user_id = ?"""
+        data = (ctx.author.id,)
+
+        cursor = await ctx.bot.db.execute(sql, data)
+        data = await cursor.fetchone()
+
+        inventory = ast.literal_eval(data[0])
+
+        for item in inventory:
+            if items["main"] in item.keys() and items["second"] in item.keys():
+                return True
+
+        raise NoSupplies()
 
     return commands.check(predicate)
